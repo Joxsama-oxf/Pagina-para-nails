@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Servicios - Laura Nails{% endblock %}
+
+{% block content %}
+<div id="bg-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;">
+    <div class="carousel-inner h-100">
+        <div class="carousel-item active h-100"><img src="{{ url_for('static', filename='02_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover; filter: brightness(0.25);"></div>
+    </div>
+</div>
+
+<style>
+    body { background: transparent; color: white; }
+    .font-title { font-family: 'Playfair Display', serif; }
+
+    .contenedor-admin { background: #1a1a1a; backdrop-filter: blur(10px); border-radius: 12px; border: 2px solid #ec407a; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); margin-top: 20px; }
+    .table-admin { color: #ddd !important; background-color: transparent !important; }
+    .table-admin th { border-bottom: 2px solid #ec407a !important; color: white !important; background-color: #212121 !important; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; padding: 15px !important; }
+    .table-admin td { border-bottom: 1px solid #333 !important; vertical-align: middle; padding: 15px !important; background-color: transparent !important; }
+    .table-admin tbody tr:hover { background-color: rgba(236, 64, 122, 0.05) !important; }
+
+    .form-control-dark { background-color: #2d2d2d !important; border: 1px solid #444; color: #fff !important; }
+    .form-control-dark:focus { background-color: #333 !important; color: #fff !important; border-color: #ec407a; box-shadow: 0 0 0 0.25rem rgba(236, 64, 122, 0.25); }
+    .btn-rosa { background: linear-gradient(45deg, #ec407a, #d81b60); color: white; border: none; font-weight: bold; }
+    .btn-rosa:hover { opacity: 0.9; color: white; }
+</style>
+
+<div class="container py-5" style="position: relative; z-index: 2;">
+    <div class="d-flex justify-content-between align-items-center mb-2 p-3 rounded-4" style="background: rgba(30,30,30,0.7); border: 1px solid rgba(255,255,255,0.05);">
+        <h2 class="font-title mb-0"><i class="bi bi-tags-fill me-2" style="color: #ec407a;"></i>Precios y Promociones</h2>
+        <button class="btn btn-rosa rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalServicio" onclick="prepararNuevo()"><i class="bi bi-plus-lg me-1"></i> Agregar Registro</button>
+    </div>
+
+    <div class="contenedor-admin overflow-auto" style="max-height: 70vh;">
+        <table class="table table-admin table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Nombre / Promoción</th>
+                    <th>Precio ($)</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in servicios %}
+                <tr>
+                    <td class="fw-bold text-light">{{ s.nombre }}</td>
+                    <td>
+                        {% if s.precio_promocion and s.fecha_fin_promocion and s.fecha_fin_promocion >= hoy %}
+                            <span class="text-decoration-line-through text-secondary small">${{ "%.2f"|format(s.precio) }}</span>
+                            <span class="fw-bold text-success ms-2">${{ "%.2f"|format(s.precio_promocion) }}</span>
+                            <br><span class="badge bg-danger mt-1">Promo hasta: {{ s.fecha_fin_promocion.strftime('%Y-%m-%d') }}</span>
+                        {% else %}
+                            <span class="fw-bold" style="color: #ffb6c1;">${{ "%.2f"|format(s.precio) }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end text-nowrap">
+                        {% if s.precio_promocion and s.fecha_fin_promocion and s.fecha_fin_promocion >= hoy %}
+                            <form action="{{ url_for('admin_servicios.index') }}" method="POST" class="d-inline">
+                                <input type="hidden" name="accion" value="quitar_promocion">
+                                <input type="hidden" name="id" value="{{ s.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1" title="Quitar Promo"><i class="bi bi-tag-fill text-muted"></i></button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="prepararPromo({{ s.id }}, '{{ s.nombre }}')" data-bs-toggle="modal" data-bs-target="#modalPromo" title="Activar Promoción"><i class="bi bi-tag-fill"></i></button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline-light me-1" onclick="prepararEdicion({{ s.id }}, '{{ s.nombre }}', {{ s.precio }})" data-bs-toggle="modal" data-bs-target="#modalServicio" title="Editar Base"><i class="bi bi-pencil-fill"></i></button>
+                        <form action="{{ url_for('admin_servicios.index') }}" method="POST" class="d-inline">
+                            <input type="hidden" name="accion" value="eliminar">
+                            <input type="hidden" name="id" value="{{ s.id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar definitivamente?')"><i class="bi bi-trash-fill"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalServicio" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="background-color: #1e1e1e; border: 1px solid #444;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold font-title text-white" id="modalTitulo">Servicio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_servicios.index') }}" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="accion" id="formAccion" value="agregar">
+                    <input type="hidden" name="id" id="formId" value="">
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1">Descripción del Servicio</label>
+                        <input type="text" class="form-control form-control-dark" name="nombre" id="formNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1">Precio Base ($)</label>
+                        <input type="number" step="0.01" min="0" class="form-control form-control-dark" name="precio" id="formPrecio" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-rosa w-100 rounded-pill">Guardar en Base de Datos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPromo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="background-color: #1e1e1e; border: 1px solid #444;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold font-title text-white">Activar Promoción</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_servicios.index') }}" method="POST">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="accion" value="promocion">
+                    <input type="hidden" name="id" id="promoId" value="">
+                    <p class="text-light mb-3" id="promoNombre"></p>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1">Precio de Promoción ($)</label>
+                        <input type="number" step="0.01" min="0" class="form-control form-control-dark" name="precio_promocion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1">Válido hasta (Fecha de finalización)</label>
+                        <input type="date" class="form-control form-control-dark" name="fecha_fin" id="promoFecha" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold">Guardar Promoción</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function prepararNuevo() {
+        document.getElementById('modalTitulo').innerText = 'Nuevo Servicio / Promo';
+        document.getElementById('formAccion').value = 'agregar';
+        document.getElementById('formId').value = '';
+        document.getElementById('formNombre').value = '';
+        document.getElementById('formPrecio').value = '';
+    }
+    function prepararEdicion(id, nombre, precio) {
+        document.getElementById('modalTitulo').innerText = 'Modificar Precio Base';
+        document.getElementById('formAccion').value = 'editar';
+        document.getElementById('formId').value = id;
+        document.getElementById('formNombre').value = nombre;
+        document.getElementById('formPrecio').value = precio;
+    }
+    function prepararPromo(id, nombre) {
+        document.getElementById('promoId').value = id;
+        document.getElementById('promoNombre').innerText = "Servicio: " + nombre;
+        const hoy = new Date();
+        const año = hoy.getFullYear();
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        document.getElementById('promoFecha').min = `${año}-${mes}-${dia}`;
+    }
+</script>
+{% endblock %}

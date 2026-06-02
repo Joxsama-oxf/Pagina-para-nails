@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Finanzas - Laura Nails{% endblock %}
+
+{% block content %}
+
+<div id="bg-carousel-fin" class="carousel slide carousel-fade" data-bs-ride="carousel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;">
+    <div class="carousel-inner h-100">
+        <div class="carousel-item active h-100" data-bs-interval="4000"><img src="{{ url_for('static', filename='01_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover;"></div>
+        <div class="carousel-item h-100" data-bs-interval="4000"><img src="{{ url_for('static', filename='02_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover;"></div>
+        <div class="carousel-item h-100" data-bs-interval="4000"><img src="{{ url_for('static', filename='03_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover;"></div>
+    </div>
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.85); z-index: 1;"></div>
+</div>
+
+<style>
+    body { background: transparent; color: white; }
+
+    /* Tarjetas Semitransparentes */
+    .kpi-card {
+        background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(8px);
+        border-radius: 15px; padding: 20px; color: white; height: 100%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative; overflow: hidden;
+    }
+    .bg-pink { border-top: 4px solid #d81b60; }
+    .bg-purple { border-top: 4px solid #8e24aa; }
+    .bg-teal { border-top: 4px solid #00897b; }
+
+    .kpi-title { font-size: 0.8rem; text-transform: uppercase; font-weight: 700; opacity: 0.8; margin-bottom: 5px; letter-spacing: 1px; }
+    .kpi-value { font-size: 2.5rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .kpi-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 3rem; opacity: 0.2; }
+
+    /* Paneles Vidrio */
+    .panel-form {
+        background: rgba(30, 30, 30, 0.8); backdrop-filter: blur(10px);
+        border: 2px solid #ec407a; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); height: 100%;
+    }
+    .panel-table {
+        background: rgba(30, 30, 30, 0.8); backdrop-filter: blur(10px);
+        border: 2px solid #ab47bc; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); height: 100%;
+    }
+
+    .panel-header { font-weight: 700; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 20px; color: #ec407a; border-bottom: 1px solid #444; padding-bottom: 10px; display: flex; align-items: center; }
+    .form-control-dark { background-color: rgba(45, 45, 45, 0.8); border: 1px solid #444; color: white; border-radius: 8px; padding: 10px; font-weight: 500; }
+    .form-control-dark:focus { background-color: #333; border-color: #ec407a; color: white; box-shadow: none; }
+    .btn-outline-light { border-color: #444; color: #aaa; }
+    .btn-check:checked + .btn-outline-light { background-color: #ec407a; border-color: #ec407a; color: white; font-weight: bold; }
+    .btn-guardar { background: linear-gradient(45deg, #ec407a, #d81b60); color: white; width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; border: none; transition: 0.3s; }
+
+    .table-dark-custom { width: 100%; color: #ddd; }
+    .table-dark-custom th { font-size: 0.75rem; text-transform: uppercase; color: #999; border-bottom: 1px solid #444; padding: 15px 10px; }
+    .table-dark-custom td { padding: 15px 10px; vertical-align: middle; border-bottom: 1px solid #333; }
+    .table-dark-custom tr:hover td { background-color: rgba(255,255,255,0.05); }
+    .badge-ingreso { color: #69f0ae; border: 1px solid #00c853; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+    .badge-gasto { color: #ff8a80; border: 1px solid #d50000; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+</style>
+
+<div class="container-fluid px-5 py-4" style="position: relative; z-index: 2;">
+    <div class="mb-4 d-flex align-items-center">
+        <div class="p-3 rounded-circle me-3 d-flex align-items-center justify-content-center" style="background: rgba(30,30,30,0.8); width: 50px; height: 50px; border: 1px solid #444;"><i class="bi bi-graph-up-arrow" style="color: #ec407a;"></i></div>
+        <div><h6 class="text-secondary text-uppercase small fw-bold mb-0">Sistema de Gestión</h6><h1 class="fw-bold m-0" style="font-family: 'Playfair Display', serif; color: white;">Finanzas del Negocio</h1></div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-3 mb-4">
+        <button class="btn btn-success fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalCerrarDia" style="border-radius: 8px;">
+            <i class="bi bi-calculator me-2"></i>Cerrar Día y Calcular Pago
+        </button>
+        <button class="btn btn-info fw-bold text-white px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalMes" style="border-radius: 8px; background: #ab47bc; border-color: #ab47bc;">
+            <i class="bi bi-calendar-check me-2"></i>Ganancias del Mes
+        </button>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4"><div class="kpi-card bg-pink"><div class="kpi-title">Ingresos del Día</div><div class="kpi-value">${{ "%.2f"|format(ingresos|default(0)) }}</div><i class="bi bi-wallet2 kpi-icon"></i></div></div>
+        <div class="col-md-4"><div class="kpi-card bg-purple"><div class="kpi-title">Gastos del Día</div><div class="kpi-value">${{ "%.2f"|format(gastos|default(0)) }}</div><i class="bi bi-bag kpi-icon"></i></div></div>
+        <div class="col-md-4"><div class="kpi-card bg-teal"><div class="kpi-title">Utilidad Diaria</div><div class="kpi-value">${{ "%.2f"|format(utilidad|default(0)) }}</div><i class="bi bi-piggy-bank kpi-icon"></i></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="panel-form">
+                <div class="panel-header"><i class="bi bi-plus-circle me-2"></i> Registrar Movimiento</div>
+                <form action="{{ url_for('contabilidad.index') }}" method="POST">
+                    <div class="btn-group w-100 mb-4" role="group">
+                        <input type="radio" class="btn-check" name="tipo" id="tIngreso" value="Ingreso (+)" checked><label class="btn btn-outline-light" for="tIngreso">Ingreso</label>
+                        <input type="radio" class="btn-check" name="tipo" id="tGasto" value="Gasto (-)"><label class="btn btn-outline-light" for="tGasto">Gasto</label>
+                    </div>
+                    <div class="mb-3"><label class="small fw-bold text-secondary mb-1">MONTO ($)</label><input type="number" step="0.01" name="monto" class="form-control form-control-dark fs-5" placeholder="0.00" required></div>
+                    <div class="mb-4"><label class="small fw-bold text-secondary mb-1">DESCRIPCIÓN</label><input type="text" name="descripcion" class="form-control form-control-dark" placeholder="Ej. Pago de luz..." required></div>
+                    <button type="submit" class="btn-guardar">GUARDAR REGISTRO</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="panel-table">
+                <div class="d-flex justify-content-between align-items-center mb-3"><div class="panel-header m-0 border-0" style="color: #ab47bc;">Historial de Transacciones</div><span class="badge bg-dark border border-secondary text-light">Hoy</span></div>
+                <div class="table-responsive">
+                    <table class="table-dark-custom mb-0">
+                        <thead><tr><th>Fecha</th><th>Descripción</th><th>Tipo</th><th class="text-end">Monto</th><th></th></tr></thead>
+                        <tbody>
+                            {% if movimientos %}
+                                {% for mov in movimientos %}
+                                <tr>
+                                    <td class="fw-bold text-secondary small">{{ mov.fecha.strftime('%d/%m') }}</td>
+                                    <td class="fw-bold text-light">{{ mov.descripcion }}</td>
+                                    <td>{% if 'Ingreso' in mov.tipo %}<span class="badge-ingreso">INGRESO</span>{% else %}<span class="badge-gasto">GASTO</span>{% endif %}</td>
+                                    <td class="text-end fw-bold">{% if 'Ingreso' in mov.tipo %}<span style="color: #69f0ae;">+${{ "%.2f"|format(mov.monto) }}</span>{% else %}<span style="color: #ff8a80;">-${{ "%.2f"|format(mov.monto) }}</span>{% endif %}</td>
+                                    <td class="text-end"><a href="{{ url_for('contabilidad.borrar', id=mov.id) }}" class="text-secondary hover-white" onclick="return confirm('¿Borrar?')"><i class="bi bi-x-lg"></i></a></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="5" class="text-center py-5 text-secondary"><i class="bi bi-inbox fs-1 opacity-25"></i><p class="small mt-2">Sin movimientos</p></td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCerrarDia" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white" style="border: 1px solid #444; border-radius: 15px;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" style="color: #ec407a;"><i class="bi bi-calculator me-2"></i>Cierre de Caja Diario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('contabilidad.cerrar_dia') }}" method="POST">
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between mb-3 text-secondary">
+                        <span class="fw-bold text-uppercase small">Utilidad Generada Hoy:</span>
+                        <span class="text-white fs-4 fw-bold" id="ingresoBruto">${{ "%.2f"|format(utilidad|default(0)) }}</span> 
+                    </div>
+                    
+                    {% if ventas_por_manicurista %}
+                    <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid #333;">
+                        <h6 class="text-info text-uppercase small fw-bold mb-3 border-bottom border-secondary pb-2">Producción por Manicurista</h6>
+                        {% for manicurista, monto in ventas_por_manicurista.items() %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-light small"><i class="bi bi-person-fill me-2 text-secondary"></i>{{ manicurista }}</span>
+                            <span class="text-success fw-bold">${{ "%.2f"|format(monto) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4 mt-4">
+                        <label class="form-label text-info fw-bold small text-uppercase">Total a pagar a Manicuristas ($)</label>
+                        <input type="number" step="0.01" min="0" class="form-control form-control-dark fs-4 text-center" id="pagoManicuristas" name="pago_manicuristas" required oninput="calcularSobrante()" placeholder="0.00">
+                    </div>
+                    
+                    <hr class="border-secondary my-4">
+                    
+                    <div class="d-flex justify-content-between align-items-center bg-dark p-3 rounded" style="border: 1px solid #333;">
+                        <span class="text-uppercase small fw-bold text-secondary">Sobrante a Ganancia Neta:</span>
+                        <span class="fs-3 fw-bold text-success" id="gananciaNetaFinal">$0.00</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="submit" class="btn-guardar w-100">REGISTRAR PAGO Y CERRAR DÍA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMes" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark text-white" style="border: 1px solid #444; border-radius: 15px;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold" style="color: #ab47bc;"><i class="bi bi-calendar-check me-2"></i>Rendimiento Financiero Mensual</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-5">
+                <div class="row text-center g-4">
+                    <div class="col-md-4">
+                        <div class="p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                            <h6 class="text-secondary text-uppercase small fw-bold mb-3">Ingresos Brutos</h6>
+                            <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(ingresos_mes|default(0)) }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                            <h6 class="text-secondary text-uppercase small fw-bold mb-3">Gastos Operativos Totales</h6>
+                            <h3 class="text-danger fw-bold m-0">${{ "%.2f"|format(gastos_mes|default(0)) }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 rounded border border-info" style="background: rgba(0, 188, 212, 0.1);">
+                            <h6 class="text-info text-uppercase small fw-bold mb-3">Ganancia Neta Mensual</h6>
+                            <h3 class="text-info fw-bold m-0">${{ "%.2f"|format(utilidad_mes|default(0)) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function calcularSobrante() {
+    let ingresosBrutos = parseFloat(document.getElementById('ingresoBruto').innerText.replace('$', '')) || 0;
+    let pagoPersonal = parseFloat(document.getElementById('pagoManicuristas').value) || 0;
+    
+    let gananciaNeta = ingresosBrutos - pagoPersonal;
+    
+    if (gananciaNeta < 0) gananciaNeta = 0; 
+    
+    document.getElementById('gananciaNetaFinal').innerText = '$' + gananciaNeta.toFixed(2);
+}
+</script>
+
+{% endblock %}

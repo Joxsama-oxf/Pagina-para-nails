@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Facturación - Laura Nails{% endblock %}
+
+{% block content %}
+
+<div id="bg-carousel-fact" class="carousel slide carousel-fade" data-bs-ride="carousel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;">
+    <div class="carousel-inner h-100">
+        <div class="carousel-item active h-100"><img src="{{ url_for('static', filename='01_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover;"></div>
+        <div class="carousel-item h-100"><img src="{{ url_for('static', filename='02_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover;"></div>
+        <div class="carousel-item h-100"><img src="{{ url_for('static', filename='03_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover;"></div>
+    </div>
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 10, 0.85); z-index: 1;"></div>
+</div>
+
+<style>
+    body { background: transparent; font-size: 0.9rem; color: #ddd; }
+
+    .cat-header { text-align: center; padding: 10px; color: white; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; border-radius: 12px 12px 0 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    .bg-manos { background: linear-gradient(135deg, #d81b60, #880e4f); border-bottom: 2px solid #ec407a; }
+    .bg-pies { background: linear-gradient(135deg, #7b1fa2, #4a148c); border-bottom: 2px solid #ab47bc; }
+    .bg-extras { background: linear-gradient(135deg, #f57f17, #e65100); border-bottom: 2px solid #ffca28; }
+    .bg-ticket { background: #212121; border-bottom: 2px solid #555; }
+
+    .service-container {
+        background: rgba(30, 30, 30, 0.7); backdrop-filter: blur(5px);
+        border-radius: 0 0 12px 12px; padding: 10px; max-height: 45vh; overflow-y: auto;
+        border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;
+    }
+
+    .btn-item {
+        width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        background: rgba(45, 45, 45, 0.8); border: 1px solid #444;
+        padding: 15px 5px; border-radius: 8px; margin: 0;
+        color: #ccc; font-weight: 500; transition: all 0.1s; font-size: 0.85rem; text-align: center; line-height: 1.2;
+    }
+    .btn-item span:first-child { margin-bottom: 8px; }
+    .btn-item:active { background: #333; border-color: #ec407a; color: white; transform: scale(0.98); }
+    .btn-price { background: #121212; color: #ec407a; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.85rem; border: 1px solid #333; }
+
+    .ticket-wrapper { display: flex; flex-direction: column; max-height: 60vh; box-shadow: 0 0 20px rgba(0,0,0,0.5); border-radius: 12px; margin-top: 10px; }
+    .ticket-body { flex-grow: 1; background: rgba(26, 26, 26, 0.9); overflow-y: auto; padding: 0; border-left: 1px solid #333; border-right: 1px solid #333; min-height: 200px; }
+    .ticket-item { padding: 12px 10px; border-bottom: 1px dashed #444; font-size: 0.95rem; display: flex; justify-content: space-between; color: #eee; align-items: center; }
+    .ticket-footer { background: #212121; padding: 15px; border-radius: 0 0 12px 12px; border: 1px solid #333; border-top: 2px solid #ec407a; }
+    .total-display { font-size: 1.8rem; font-weight: 800; color: white; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+
+    .nav-pills .nav-link { background: rgba(45, 45, 45, 0.8); color: white; border: 1px solid #444; border-radius: 8px; margin-bottom: 5px; font-weight: bold; padding: 10px 5px;}
+    .nav-pills .nav-link.active { background: linear-gradient(135deg, #d81b60, #880e4f); border-color: #ec407a; }
+</style>
+
+<div class="container-fluid py-2 px-1 px-md-3" style="position: relative; z-index: 2;">
+    <div class="d-flex align-items-center mb-2 px-2">
+        <i class="bi bi-grid-3x3-gap-fill fs-5 me-2" style="color: #ec407a;"></i>
+        <h5 class="m-0 fw-bold text-uppercase text-light" style="font-family: 'Playfair Display', serif;">Punto de Venta</h5>
+    </div>
+
+    {% if citas %}
+    <div class="mb-3 px-2">
+        <h6 class="text-uppercase fw-bold text-secondary mb-2 small" style="letter-spacing: 1px;">Citas de Hoy</h6>
+        <div class="d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none;">
+            {% for cita in citas %}
+            {% set parts = cita.service.split('|') %}
+            <button type="button" class="btn btn-outline-light text-start p-2 shadow-sm" style="min-width: 180px; background: rgba(30,30,30,0.8); border-color: #ec407a; border-radius: 8px;" onclick="cargarCita('{{ cita.client_name }}', '{{ parts[0] }}')">
+                <div class="fw-bold fs-6" style="color: #ffb6c1;">{{ cita.time.strftime('%H:%M') }} | {{ cita.client_name }}</div>
+                <div class="small text-secondary text-truncate" style="max-width: 160px;">{{ parts[0] }}</div>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-2 px-1 px-md-0">
+        <div class="col-lg-7 col-12">
+            <ul class="nav nav-pills d-flex mb-2" id="posTabs" role="tablist">
+                <li class="nav-item flex-fill text-center pe-1" role="presentation">
+                    <button class="nav-link active w-100" data-bs-toggle="pill" data-bs-target="#tab-manos" type="button"><i class="bi bi-hand-index d-block d-md-inline mb-1"></i> Manos</button>
+                </li>
+                <li class="nav-item flex-fill text-center pe-1" role="presentation">
+                    <button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#tab-pies" type="button"><i class="bi bi-gem d-block d-md-inline mb-1"></i> Pies</button>
+                </li>
+                <li class="nav-item flex-fill text-center" role="presentation">
+                    <button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#tab-extras" type="button"><i class="bi bi-stars d-block d-md-inline mb-1"></i> Extras</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="posTabsContent">
+                <div class="tab-pane fade show active" id="tab-manos" role="tabpanel">
+                    <div class="service-container rounded-3">
+                        <button onclick="agregar('Manicure Tradicional', 5)" class="btn-item"><span>Mani Tradicional</span> <span class="btn-price">$5</span></button>
+                        <button onclick="agregar('Semipermanente', 7)" class="btn-item"><span>Semipermanente</span> <span class="btn-price">$7</span></button>
+                        <button onclick="agregar('Rubber', 12)" class="btn-item"><span>Base Rubber</span> <span class="btn-price">$12</span></button>
+                        <button onclick="agregar('Softgel', 15)" class="btn-item"><span>Sistema Softgel</span> <span class="btn-price">$15</span></button>
+                        <button onclick="agregar('Esculpidas #3', 25)" class="btn-item"><span>Esculpidas</span> <span class="btn-price">$25</span></button>
+                        <button onclick="agregar('Poligel', 28)" class="btn-item"><span>Poligel</span> <span class="btn-price">$28</span></button>
+                        <button onclick="agregar('Baño Acrílico', 15)" class="btn-item"><span>Baño Acrílico</span> <span class="btn-price">$15</span></button>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="tab-pies" role="tabpanel">
+                    <div class="service-container rounded-3">
+                        <button onclick="agregar('Pedicure Tradicional', 7)" class="btn-item"><span>Pedi Tradicional</span> <span class="btn-price">$7</span></button>
+                        <button onclick="agregar('Pedicure Profunda', 12)" class="btn-item"><span>Pedi Profunda</span> <span class="btn-price">$12</span></button>
+                        <button onclick="agregar('Semipermanente Pies', 12)" class="btn-item"><span>Semi Pies</span> <span class="btn-price">$12</span></button>
+                        <button onclick="agregar('Retiro Manos', 5)" class="btn-item"><span>Retiro Manos</span> <span class="btn-price">$5</span></button>
+                        <button onclick="agregar('Retiro Gel', 2)" class="btn-item"><span>Retiro Gel</span> <span class="btn-price">$2</span></button>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="tab-extras" role="tabpanel">
+                    <div class="service-container rounded-3">
+                        <button onclick="agregar('Ojo de Gato', 5)" class="btn-item"><span>Ojo de Gato</span> <span class="btn-price">$5</span></button>
+                        <button onclick="agregar('Efecto Espejo', 3)" class="btn-item"><span>Efecto Espejo</span> <span class="btn-price">$3</span></button>
+                        <button onclick="agregar('Flores 3D', 1.50)" class="btn-item"><span>Flores 3D</span> <span class="btn-price">$1.50</span></button>
+                        <button onclick="agregar('Encapsulado', 1)" class="btn-item"><span>Encapsulado</span> <span class="btn-price">$1</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 col-12">
+            <div class="ticket-wrapper mt-0">
+                <div class="cat-header bg-ticket rounded-top"><i class="bi bi-receipt me-1"></i> Ticket de Venta</div>
+                <div class="ticket-body" id="ticket-scroll">
+                    <ul id="lista-items" class="list-unstyled m-0">
+                        <div class="text-center text-secondary mt-4 opacity-25" id="mensaje-vacio"><i class="bi bi-cart-x display-3"></i><p class="mt-2 small">Vacío</p></div>
+                    </ul>
+                </div>
+                <div class="ticket-footer">
+                    <div class="d-flex justify-content-between align-items-end mb-3">
+                        <span class="text-secondary small fw-bold text-uppercase">Total</span>
+                        <div class="total-display" id="total-display">$0.00</div>
+                    </div>
+                    <form method="POST" action="{{ url_for('facturacion.index') }}">
+                        <input type="hidden" name="total_hidden" id="total_hidden" value="0">
+                        <input type="hidden" name="descripcion_hidden" id="descripcion_hidden" value="">
+                        <div class="row g-2">
+                            <div class="col-9">
+                                <button type="submit" class="btn w-100 fw-bold text-white fs-5 py-2" style="background: linear-gradient(45deg, #ec407a, #c2185b);" onclick="return confirm('Confirmar cobro')">COBRAR</button>
+                            </div>
+                            <div class="col-3">
+                                <button type="button" class="btn btn-outline-secondary w-100 py-2" onclick="limpiar()"><i class="bi bi-trash fs-5"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="precios-data" type="application/json">
+    {{ precios | safe }}
+</script>
+
+<script>
+    let total = 0; 
+    let items = [];
+    let itemCounter = 0;
+    
+    const mapaPrecios = JSON.parse(document.getElementById('precios-data').textContent);
+
+    function cargarCita(cliente, serviciosStr) {
+        limpiar();
+        agregar(`CITA: ${cliente}`, 0);
+        
+        const servicios = serviciosStr.split(', ');
+        servicios.forEach(s => {
+            const precio = mapaPrecios[s];
+            if (precio !== undefined) {
+                agregar(s, parseFloat(precio));
+            }
+        });
+    }
+
+    function agregar(n, p) { 
+        document.getElementById('mensaje-vacio').style.display = 'none'; 
+        
+        const itemId = 'item-' + itemCounter++;
+        items.push({ id: itemId, nombre: n, precio: p }); 
+        total += p; 
+        
+        const li = document.createElement('li'); 
+        li.id = itemId;
+        li.className = 'ticket-item animate__animated animate__fadeInRight faster'; 
+        
+        let visualPrecio = p > 0 ? `$${p.toFixed(2)}` : '';
+        
+        li.innerHTML = `
+            <div class="flex-grow-1 d-flex justify-content-between pe-2 align-items-center">
+                <span class="fw-bold small">${n}</span>
+                <span class="fw-bold text-success">${visualPrecio}</span>
+            </div>
+            <button type="button" class="btn btn-dark text-danger p-2 border border-secondary rounded-circle" onclick="quitar('${itemId}', ${p})" style="line-height: 1;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        `; 
+        
+        document.getElementById('lista-items').appendChild(li); 
+        const s = document.getElementById('ticket-scroll'); 
+        s.scrollTop = s.scrollHeight; 
+        
+        actualizar(); 
+    }
+
+    function quitar(idABorrar, precio) {
+        const li = document.getElementById(idABorrar);
+        if(li) {
+            li.remove();
+        }
+
+        total -= precio;
+        if (total < 0) total = 0; 
+
+        items = items.filter(item => item.id !== idABorrar);
+
+        if (items.length === 0) {
+            limpiar();
+        } else {
+            actualizar();
+        }
+    }
+
+    function limpiar() { 
+        items = []; 
+        total = 0; 
+        itemCounter = 0;
+        document.getElementById('lista-items').innerHTML = '<div class="text-center text-secondary mt-4 opacity-25" id="mensaje-vacio"><i class="bi bi-cart-x display-3"></i><p class="mt-2 small">Vacío</p></div>'; 
+        actualizar(); 
+    }
+
+    function actualizar() { 
+        document.getElementById('total-display').innerText = '$' + total.toFixed(2); 
+        document.getElementById('total_hidden').value = total; 
+        
+        const nombres = items.map(item => item.nombre);
+        document.getElementById('descripcion_hidden').value = nombres.join(', '); 
+    }
+</script>
+{% endblock %}
