@@ -40,6 +40,7 @@
     .btn-nueva-cita { background: linear-gradient(45deg, #ec407a, #d81b60); color: white; border: none; font-weight: bold; box-shadow: 0 0 15px rgba(236, 64, 122, 0.4); }
 </style>
 
+<<<<<<< HEAD
 <div class="container-fluid px-2 px-md-5 py-3" style="position: relative; z-index: 2;">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 mt-2 p-3 p-md-4 rounded-4 shadow-sm" style="background: rgba(30,30,30,0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
         <div class="d-flex flex-column flex-sm-row align-items-center gap-3 mb-3 mb-md-0 text-center text-sm-start w-100 w-md-auto">
@@ -62,17 +63,48 @@
             <div class="columna-estilista">
                 <div class="header-mani-1"><h5 class="mb-0 fw-bold font-title text-white">Manicurista 1</h5><small style="opacity: 0.8; color: #ffd1dc;">Experta en Gel</small></div>
                 <div class="p-2 p-md-3">
+=======
+<div class="container-fluid px-5 py-4" style="position: relative; z-index: 2;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 mt-3 p-4 rounded-4 shadow-sm" style="background: rgba(30,30,30,0.7); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.5); width: 60px; height: 60px; border: 1px solid #333;"><i class="bi bi-calendar-heart fs-3" style="color: #ec407a;"></i></div>
+            <div><h2 class="font-title mb-0">Agenda Diaria</h2><p class="text-secondary mb-0 small">Organización Profesional</p></div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('agendamiento.historial') }}" class="btn btn-outline-light rounded-pill px-4 py-2" style="border-color: #444;"><i class="bi bi-clock-history me-1"></i> Historial</a>
+            <form action="{{ url_for('agendamiento.index') }}" method="GET" class="d-flex align-items-center rounded-pill px-3 py-2 border border-secondary" style="background: rgba(0,0,0,0.5);">
+                <i class="bi bi-calendar-event text-secondary me-2"></i>
+                <input type="date" name="fecha" id="selector-fecha" class="form-control border-0 bg-transparent p-0 fw-bold text-light" value="{{ fecha }}" min="{{ fecha_min }}" max="{{ fecha_max }}" onchange="this.form.submit()" style="width: 130px; outline: none; color-scheme: dark;">
+            </form>
+            <button class="btn btn-nueva-cita rounded-pill px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalAgendar"><i class="bi bi-plus-lg me-1"></i> Nueva Cita</button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="columna-estilista">
+                <div class="header-mani-1"><h5 class="mb-0 fw-bold font-title text-white">Manicurista 1</h5><small style="opacity: 0.8; color: #ffd1dc;">Experta en Gel</small></div>
+                <div class="p-3">
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                     {% if citas_1 %}
                         {% for cita in citas_1 %}
                         {% set parts = cita.service.split('|') %}
                         <div class="cita-card borde-rosa">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
+<<<<<<< HEAD
                                     <h4 class="fw-bold mb-1 fs-5">{{ cita.time.strftime('%H:%M') }}{% if parts|length > 1 %} - {{ parts[1] }}{% endif %}</h4>
                                     <h6 class="fw-bold mb-1">{{ cita.client_name }}</h6>
                                     <span class="badge bg-dark border border-secondary text-secondary">{{ parts[0] }}</span>
                                 </div>
                                 <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-secondary hover-white p-2" onclick="return confirm('¿Borrar cita?')"><i class="bi bi-trash-fill fs-5"></i></a>
+=======
+                                    <h4 class="fw-bold mb-1">{{ cita.time.strftime('%H:%M') }}{% if parts|length > 1 %} - {{ parts[1] }}{% endif %}</h4>
+                                    <h6 class="fw-bold mb-1">{{ cita.client_name }}</h6>
+                                    <span class="badge bg-dark border border-secondary text-secondary">{{ parts[0] }}</span>
+                                </div>
+                                <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-secondary hover-white" onclick="return confirm('¿Borrar cita?')"><i class="bi bi-trash-fill"></i></a>
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                             </div>
                         </div>
                         {% endfor %}
@@ -82,6 +114,7 @@
                 </div>
             </div>
         </div>
+<<<<<<< HEAD
         {% endif %}
 
         {% if es_admin or current_user.id == 2 %}
@@ -89,17 +122,31 @@
             <div class="columna-estilista">
                 <div class="header-mani-2"><h5 class="mb-0 fw-bold font-title text-white">Manicurista 2</h5><small style="opacity: 0.8; color: #e1bee7;">Nail Art Pro</small></div>
                 <div class="p-2 p-md-3">
+=======
+        <div class="col-md-6">
+            <div class="columna-estilista">
+                <div class="header-mani-2"><h5 class="mb-0 fw-bold font-title text-white">Manicurista 2</h5><small style="opacity: 0.8; color: #e1bee7;">Nail Art Pro</small></div>
+                <div class="p-3">
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                     {% if citas_2 %}
                         {% for cita in citas_2 %}
                         {% set parts = cita.service.split('|') %}
                         <div class="cita-card borde-lila">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
+<<<<<<< HEAD
                                     <h4 class="fw-bold mb-1 fs-5">{{ cita.time.strftime('%H:%M') }}{% if parts|length > 1 %} - {{ parts[1] }}{% endif %}</h4>
                                     <h6 class="fw-bold mb-1">{{ cita.client_name }}</h6>
                                     <span class="badge bg-dark border border-secondary text-secondary">{{ parts[0] }}</span>
                                 </div>
                                 <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-secondary hover-white p-2" onclick="return confirm('¿Borrar cita?')"><i class="bi bi-trash-fill fs-5"></i></a>
+=======
+                                    <h4 class="fw-bold mb-1">{{ cita.time.strftime('%H:%M') }}{% if parts|length > 1 %} - {{ parts[1] }}{% endif %}</h4>
+                                    <h6 class="fw-bold mb-1">{{ cita.client_name }}</h6>
+                                    <span class="badge bg-dark border border-secondary text-secondary">{{ parts[0] }}</span>
+                                </div>
+                                <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-secondary hover-white" onclick="return confirm('¿Borrar cita?')"><i class="bi bi-trash-fill"></i></a>
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                             </div>
                         </div>
                         {% endfor %}
@@ -109,13 +156,17 @@
                 </div>
             </div>
         </div>
+<<<<<<< HEAD
         {% endif %}
+=======
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
     </div>
 </div>
 
 <div class="modal fade" id="modalAgendar" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg">
+<<<<<<< HEAD
             <div class="modal-header"><h5 class="modal-title fw-bold font-title">Agendar Cita</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
             <form action="{{ url_for('agendamiento.index', fecha=fecha) }}" method="POST" id="formAgenda">
                 <div class="modal-body p-3 p-md-4">
@@ -137,6 +188,23 @@
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="checkbox" name="service" value="{{ s.nombre }}" id="srv{{ loop.index }}" style="transform: scale(1.2); margin-top: 5px;">
                                     <label class="form-check-label text-white ms-2" for="srv{{ loop.index }}">{{ s.nombre }}</label>
+=======
+            <div class="modal-header"><h5 class="modal-title fw-bold font-title">✨ Agendar Cita</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <form action="{{ url_for('agendamiento.index', fecha=fecha) }}" method="POST" id="formAgenda">
+                <div class="modal-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6"><input type="radio" class="btn-check" name="stylist_id" id="s1" value="1" checked><label class="btn w-100 p-3 btn-outline-dark border-secondary text-light" for="s1">Manicurista 1</label></div>
+                        <div class="col-6"><input type="radio" class="btn-check" name="stylist_id" id="s2" value="2"><label class="btn w-100 p-3 btn-outline-dark border-secondary text-light" for="s2">Manicurista 2</label></div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6"><input type="text" class="form-control form-control-dark" name="client_name" placeholder="Cliente" required></div>
+                        <div class="col-md-6">
+                            <div class="p-2 rounded" style="background-color: #2d2d2d; border: 1px solid #444; height: 100px; overflow-y: auto;">
+                                {% for s in servicios %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" name="service" value="{{ s.nombre }}" id="srv{{ loop.index }}">
+                                    <label class="form-check-label text-white small" for="srv{{ loop.index }}">{{ s.nombre }} - ${{ "%.2f"|format(s.precio_actual) }}</label>
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                                 </div>
                                 {% endfor %}
                             </div>
@@ -145,6 +213,7 @@
                     
                     <div class="row g-3 mb-2">
                         <div class="col-6">
+<<<<<<< HEAD
                             <label class="text-secondary small mb-1 fw-bold">Inicio</label>
                             <input type="time" id="hora_inicio" class="form-control form-control-dark py-2" required>
                         </div>
@@ -159,16 +228,35 @@
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="submit" id="btn-guardar-cita" class="btn btn-nueva-cita w-100 rounded-pill py-3 fs-5" disabled>Guardar Cita</button>
+=======
+                            <label class="text-secondary small mb-1">Hora de inicio</label>
+                            <input type="time" id="hora_inicio" class="form-control form-control-dark" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="text-secondary small mb-1">Hora de fin</label>
+                            <input type="time" id="hora_fin" class="form-control form-control-dark" required>
+                        </div>
+                    </div>
+                    
+                    <div id="mensaje-validacion" class="text-danger small fw-bold mb-2 mt-2" style="display: none;"></div>
+                    <div id="hidden-times-container"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" id="btn-guardar-cita" class="btn btn-nueva-cita w-100 rounded-pill" disabled>Guardar Cita</button>
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <script id="rangos-data" type="application/json">
     {{ rangos_ocupados | safe }}
 </script>
 
+=======
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const inputFecha = document.getElementById('selector-fecha');
@@ -178,13 +266,21 @@
             }
         }
 
+<<<<<<< HEAD
         const rangosOcupados = JSON.parse(document.getElementById('rangos-data').textContent);
+=======
+        const rangosOcupados = {{ rangos_ocupados | safe }};
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
         const inputHoraInicio = document.getElementById('hora_inicio');
         const inputHoraFin = document.getElementById('hora_fin');
         const btnSubmit = document.getElementById('btn-guardar-cita');
         const msjValidacion = document.getElementById('mensaje-validacion');
         const containerHidden = document.getElementById('hidden-times-container');
+<<<<<<< HEAD
         const radiosEstilista = document.querySelectorAll('input[name="stylist_id"][type="radio"]');
+=======
+        const radiosEstilista = document.querySelectorAll('input[name="stylist_id"]');
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 
         function validarHorario() {
             if (!inputHoraInicio.value || !inputHoraFin.value) {
@@ -206,8 +302,12 @@
                 return;
             }
 
+<<<<<<< HEAD
             const inputEstilista = document.querySelector('input[name="stylist_id"]:checked') || document.querySelector('input[name="stylist_id"]');
             const estilistaSeleccionada = inputEstilista ? inputEstilista.value : "1";
+=======
+            const estilistaSeleccionada = document.querySelector('input[name="stylist_id"]:checked').value;
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
             const ocupadas = rangosOcupados[estilistaSeleccionada] || [];
             
             let esValido = true;
@@ -221,7 +321,11 @@
 
                 if (inicioMinutos < rFin && finMinutos > rInicio) {
                     esValido = false;
+<<<<<<< HEAD
                     mensajeError = `Choque de horario: cita de ${r.start} a ${r.end}.`;
+=======
+                    mensajeError = `Choque de horario: ya existe una cita de ${r.start} a ${r.end}.`;
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                     break;
                 }
             }
@@ -238,7 +342,11 @@
                     const minActual = hoy.getMinutes();
                     if (h1 < horaActual || (h1 === horaActual && m1 < minActual)) {
                         esValido = false;
+<<<<<<< HEAD
                         mensajeError = "No se permiten horarios pasados.";
+=======
+                        mensajeError = "No se permiten registros en horarios pasados.";
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                     }
                 }
             }
@@ -246,7 +354,11 @@
             if (esValido) {
                 if (finMinutos > 21 * 60) {
                     esValido = false;
+<<<<<<< HEAD
                     mensajeError = "Excede el horario de cierre (21:00).";
+=======
+                    mensajeError = "La hora de fin excede el horario de cierre (21:00).";
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                 }
             }
 
@@ -276,10 +388,14 @@
 
         inputHoraInicio.addEventListener('input', validarHorario);
         inputHoraFin.addEventListener('input', validarHorario);
+<<<<<<< HEAD
         
         if (radiosEstilista.length > 0) {
             radiosEstilista.forEach(r => r.addEventListener('change', validarHorario));
         }
+=======
+        radiosEstilista.forEach(r => r.addEventListener('change', validarHorario));
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
         
         document.getElementById('modalAgendar').addEventListener('show.bs.modal', function() {
             inputHoraInicio.value = '';

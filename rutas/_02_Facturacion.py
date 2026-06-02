@@ -1,5 +1,9 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
+<<<<<<< HEAD
 from flask_login import login_required, current_user
+=======
+from flask_login import login_required
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 from models import db, Movimiento, Cita, Servicio
 from datetime import datetime, timedelta
 import json
@@ -20,6 +24,7 @@ def index():
             total_venta = float(request.form.get('total_hidden'))
             descripcion_venta = request.form.get('descripcion_hidden')
             
+<<<<<<< HEAD
             # Identificador de quién está cobrando
             if current_user.role == 'admin':
                 cobrador = "Admin"
@@ -27,12 +32,18 @@ def index():
                 # Extrae el usuario antes del @ en el correo para identificar a la manicurista
                 cobrador = f"Manicurista {current_user.id} ({current_user.email.split('@')[0]})"
             
+=======
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
             if total_venta > 0:
                 nuevo_ingreso = Movimiento(
                     tipo='Ingreso (+)',
                     monto=total_venta,
+<<<<<<< HEAD
                     # Se inyecta la firma en la descripción para la contabilidad
                     descripcion=f"Venta: {descripcion_venta} | Cobrado por: {cobrador}",
+=======
+                    descripcion=f"Venta: {descripcion_venta}",
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
                     fecha=ahora
                 )
                 db.session.add(nuevo_ingreso)
@@ -46,6 +57,7 @@ def index():
             
         return redirect(url_for('facturacion.index'))
 
+<<<<<<< HEAD
     # Filtrado por usuario logueado
     if current_user.role == 'admin':
         citas_hoy = Cita.query.filter_by(date=hoy).order_by(Cita.time).all()
@@ -59,3 +71,10 @@ def index():
                            citas=citas_hoy, 
                            precios=json.dumps(mapa_precios),
                            es_admin=(current_user.role == 'admin'))
+=======
+    citas_hoy = Cita.query.filter_by(date=hoy).order_by(Cita.time).all()
+    servicios_bd = Servicio.query.all()
+    mapa_precios = {s.nombre: s.precio_actual for s in servicios_bd}
+
+    return render_template('facturacion.html', citas=citas_hoy, precios=json.dumps(mapa_precios))
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b

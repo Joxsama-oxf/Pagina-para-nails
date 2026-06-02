@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required
 from models import db, Movimiento
+<<<<<<< HEAD
 from datetime import datetime, date, timedelta
 import re
 
@@ -13,6 +14,15 @@ def obtener_hora_ecuador():
 @login_required
 def index():
     ahora = obtener_hora_ecuador()
+=======
+from datetime import datetime, date
+
+contabilidad_bp = Blueprint('contabilidad', __name__)
+
+@contabilidad_bp.route('/contabilidad', methods=['GET', 'POST'])
+@login_required
+def index():
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
     # REGISTRAR NUEVO MOVIMIENTO
     if request.method == 'POST':
         try:
@@ -20,7 +30,11 @@ def index():
             monto = float(request.form.get('monto'))
             descripcion = request.form.get('descripcion')
             
+<<<<<<< HEAD
             nuevo_mov = Movimiento(tipo=tipo, monto=monto, descripcion=descripcion, fecha=ahora)
+=======
+            nuevo_mov = Movimiento(tipo=tipo, monto=monto, descripcion=descripcion, fecha=datetime.now())
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
             db.session.add(nuevo_mov)
             db.session.commit()
             flash('Movimiento registrado', 'success')
@@ -31,9 +45,15 @@ def index():
 
     # EXTRACCIÓN Y SEGMENTACIÓN DE DATOS
     todos_movimientos = Movimiento.query.order_by(Movimiento.fecha.desc()).all()
+<<<<<<< HEAD
     hoy = ahora.date()
     mes_actual = ahora.month
     ano_actual = ahora.year
+=======
+    hoy = date.today()
+    mes_actual = datetime.now().month
+    ano_actual = datetime.now().year
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 
     # Filtros de matrices
     movimientos_hoy = [m for m in todos_movimientos if m.fecha.date() == hoy]
@@ -49,6 +69,7 @@ def index():
     gastos_mes = sum(m.monto for m in movimientos_mes if 'Gasto' in m.tipo)
     utilidad_mes = ingresos_mes - gastos_mes
 
+<<<<<<< HEAD
     # Lógica de desglose de ventas por manicurista para el cierre de caja
     ventas_por_manicurista = {}
     
@@ -63,6 +84,8 @@ def index():
                 else:
                     ventas_por_manicurista[cobrador] = m.monto
 
+=======
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
     return render_template('contabilidad.html', 
                            movimientos=movimientos_hoy, 
                            ingresos=ingresos_hoy, 
@@ -70,22 +93,36 @@ def index():
                            utilidad=utilidad_hoy,
                            ingresos_mes=ingresos_mes,
                            gastos_mes=gastos_mes,
+<<<<<<< HEAD
                            utilidad_mes=utilidad_mes,
                            ventas_por_manicurista=ventas_por_manicurista)
+=======
+                           utilidad_mes=utilidad_mes)
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 
 @contabilidad_bp.route('/contabilidad/cerrar_dia', methods=['POST'])
 @login_required
 def cerrar_dia():
+<<<<<<< HEAD
     ahora = obtener_hora_ecuador()
     try:
         pago_manicuristas = float(request.form.get('pago_manicuristas', 0))
         # Extraer pagos individuales si se mandan del form (Opcional, si quieres registrar desglosado)
+=======
+    try:
+        pago_manicuristas = float(request.form.get('pago_manicuristas', 0))
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
         if pago_manicuristas > 0:
             nuevo_mov = Movimiento(
                 tipo='Gasto', 
                 monto=pago_manicuristas, 
+<<<<<<< HEAD
                 descripcion='Cierre Diario: Pago de comisiones consolidado', 
                 fecha=ahora
+=======
+                descripcion='Cierre Diario: Pago a Manicuristas', 
+                fecha=datetime.now()
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
             )
             db.session.add(nuevo_mov)
             db.session.commit()

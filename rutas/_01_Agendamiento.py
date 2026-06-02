@@ -1,5 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+<<<<<<< HEAD
 from flask_login import login_required, current_user
+=======
+from flask_login import login_required
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 from models import db, Cita, Servicio
 from datetime import datetime, timedelta
 import json
@@ -97,6 +101,7 @@ def index():
         
         return redirect(url_for('agendamiento.index', fecha=fecha_obj))
 
+<<<<<<< HEAD
     # Filtrado condicional según el rol del usuario conectado
     es_admin = current_user.role == 'admin'
     
@@ -115,12 +120,23 @@ def index():
     # sin importar el rol, para evitar errores en el JS del modal
     todas_citas_1 = Cita.query.filter_by(date=fecha_obj, stylist_id=1).all()
     for c in todas_citas_1:
+=======
+    citas_1 = Cita.query.filter_by(date=fecha_obj, stylist_id=1).order_by(Cita.time).all()
+    citas_2 = Cita.query.filter_by(date=fecha_obj, stylist_id=2).order_by(Cita.time).all()
+    
+    rangos_ocupados = {"1": [], "2": []}
+    for c in citas_1:
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
         partes = c.service.split('|')
         fin = partes[1] if len(partes) > 1 else c.time.strftime('%H:%M')
         rangos_ocupados["1"].append({"start": c.time.strftime('%H:%M'), "end": fin})
         
+<<<<<<< HEAD
     todas_citas_2 = Cita.query.filter_by(date=fecha_obj, stylist_id=2).all()
     for c in todas_citas_2:
+=======
+    for c in citas_2:
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
         partes = c.service.split('|')
         fin = partes[1] if len(partes) > 1 else c.time.strftime('%H:%M')
         rangos_ocupados["2"].append({"start": c.time.strftime('%H:%M'), "end": fin})
@@ -134,8 +150,12 @@ def index():
                            servicios=servicios_bd,
                            rangos_ocupados=json.dumps(rangos_ocupados),
                            fecha_min=fecha_min_str,
+<<<<<<< HEAD
                            fecha_max=fecha_max_str,
                            es_admin=es_admin) # Pasamos el booleano a la plantilla
+=======
+                           fecha_max=fecha_max_str)
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
 
 @agendamiento_bp.route('/borrar/<int:id>')
 @login_required
@@ -154,10 +174,14 @@ def borrar(id):
 def historial():
     ahora = obtener_hora_ecuador()
     hoy_date = ahora.date()
+<<<<<<< HEAD
     
     if current_user.role == 'admin':
         citas_pasadas = Cita.query.filter(Cita.date < hoy_date).order_by(Cita.date.desc(), Cita.time).all()
     else:
         citas_pasadas = Cita.query.filter(Cita.date < hoy_date, Cita.stylist_id == current_user.id).order_by(Cita.date.desc(), Cita.time).all()
         
+=======
+    citas_pasadas = Cita.query.filter(Cita.date < hoy_date).order_by(Cita.date.desc(), Cita.time).all()
+>>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
     return render_template('historial_citas.html', citas=citas_pasadas)
