@@ -1,135 +1,72 @@
 {% extends "base.html" %}
-
-{% block title %}Historial de Citas - Laura Nails{% endblock %}
-
+{% block title %}Historial - Laura Nails{% endblock %}
 {% block content %}
-<div id="bg-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;">
-    <div class="carousel-inner h-100">
-        <div class="carousel-item active h-100"><img src="{{ url_for('static', filename='02_local.jpeg') }}" class="d-block w-100 h-100" style="object-fit: cover; filter: brightness(0.25);"></div>
-    </div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;">
+    <img src="{{ url_for('static', filename='02_local.jpeg') }}" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.2);">
 </div>
-
 <style>
-    /* Estilos base cohesivos */
-    body { background: transparent; color: white; }
-    .font-title { font-family: 'Playfair Display', serif; }
-
-    /* REDISEÑO: El contenedor principal ahora es una "caja negra" con borde rosa */
-    .contenedor-historial {
-        background: #1a1a1a; /* Fondo oscuro opaque como las otras cajas */
-        backdrop-filter: blur(10px);
-        border-radius: 12px;
-        border: 2px solid #ec407a; /* Borde rosa característico */
-        padding: 25px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        margin-top: 20px;
-    }
-
-    /* Personalización estricta de la tabla para modo oscuro */
-    .table-historial {
-        color: #ddd !important;
-        background-color: transparent !important;
-    }
-
-    .table-historial th {
-        border-bottom: 2px solid #ec407a !important; /* Línea rosa bajo cabecera */
-        color: white !important;
-        background-color: #212121 !important; /* Fondo ligeramente diferente para cabecera */
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        letter-spacing: 1px;
-        padding: 15px !important;
-    }
-
-    .table-historial td {
-        border-bottom: 1px solid #333 !important; /* Líneas divisorias oscuras */
-        vertical-align: middle;
-        padding: 15px !important;
-        background-color: transparent !important;
-    }
-
-    .table-historial tbody tr:hover {
-        background-color: rgba(236, 64, 122, 0.05) !important; /* Hover rosa muy sutil */
-    }
-
-    /* Acentos visuales para la tabla */
-    .badge-service {
-        background-color: #2d2d2d !important;
-        border: 1px solid #444;
-        color: #bbb !important;
-        font-weight: normal;
-    }
-
-    .time-highlight {
-        color: #ffb6c1; /* Rosa claro para el rango horario */
-        font-weight: bold;
-    }
-
-    /* Estilo para botones de acción */
-    .btn-back {
-        border-color: #555;
-        color: #ccc;
-        transition: 0.2s;
-    }
-    .btn-back:hover {
-        background-color: #333;
-        color: white;
-        border-color: #ec407a;
-    }
-
-    /* Scrollbar personalizado oscuro */
-    .contenedor-historial::-webkit-scrollbar { width: 8px; }
-    .contenedor-historial::-webkit-scrollbar-track { background: #1a1a1a; }
-    .contenedor-historial::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-    .contenedor-historial::-webkit-scrollbar-thumb:hover { background: #ec407a; }
+    body{background:transparent;color:white;}
+    .font-title{font-family:'Playfair Display',serif;}
+    .contenedor-historial{background:#1a1a1a;border-radius:12px;border:2px solid #ec407a;padding:25px;box-shadow:0 10px 30px rgba(0,0,0,0.6);margin-top:20px;}
+    .table-historial{color:#ddd!important;background-color:transparent!important;}
+    .table-historial th{border-bottom:2px solid #ec407a!important;color:white!important;background-color:#212121!important;font-weight:600;text-transform:uppercase;font-size:0.8rem;letter-spacing:1px;padding:15px!important;}
+    .table-historial td{border-bottom:1px solid #333!important;vertical-align:middle;padding:12px 15px!important;background-color:transparent!important;}
+    .table-historial tbody tr:hover{background-color:rgba(236,64,122,0.05)!important;}
+    .time-highlight{color:#ffb6c1;font-weight:bold;}
+    .btn-back{border-color:#555;color:#ccc;transition:0.2s;}
+    .btn-back:hover{background-color:#333;color:white;border-color:#ec407a;}
+    .badge-estado-pendiente{background:#f57f17;color:#000;}
+    .badge-estado-pagada{background:#2e7d32;}
+    .badge-estado-cancelada{background:#c62828;}
 </style>
-
-<div class="container py-5" style="position: relative; z-index: 2;">
-    <div class="d-flex justify-content-between align-items-center mb-2 p-3 rounded-4" style="background: rgba(30,30,30,0.7); border: 1px solid rgba(255,255,255,0.05);">
-        <h2 class="font-title mb-0"><i class="bi bi-clock-history me-2" style="color: #ec407a;"></i>Historial de Citas Pasadas</h2>
-        <a href="{{ url_for('agendamiento.index') }}" class="btn btn-back rounded-pill px-4"><i class="bi bi-arrow-left me-1"></i> Volver a Agenda</a>
+<div class="container py-5" style="position:relative;z-index:2;">
+    <div class="d-flex justify-content-between align-items-center mb-2 p-3 rounded-4" style="background:rgba(30,30,30,0.7);border:1px solid rgba(255,255,255,0.05);">
+        <h2 class="font-title mb-0"><i class="bi bi-clock-history me-2" style="color:#ec407a;"></i>Historial de Citas</h2>
+        <a href="{{ url_for('agendamiento.index') }}" class="btn btn-back rounded-pill px-4"><i class="bi bi-arrow-left me-1"></i>Volver</a>
     </div>
-
-    <div class="contenedor-historial overflow-auto" style="max-height: 75vh;">
+    <div class="contenedor-historial overflow-auto" style="max-height:75vh;">
         <table class="table table-historial table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Fecha</th>
-                    <th>Rango Horario</th>
-                    <th>Cliente</th>
-                    <th>Servicios</th>
-                    <th>Manicurista</th>
-                    <th class="text-end">Acción</th>
+                    <th>Fecha</th><th>Horario</th><th>Cliente</th>
+                    <th>Servicios</th><th>Empleada</th><th>Estado</th><th>Total</th>
+                    {% if tiene_permiso('citas.borrar') %}<th class="text-end">Acción</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% if citas %}
                     {% for cita in citas %}
-                    {% set parts = cita.service.split('|') %}
                     <tr>
-                        <td class="fw-bold text-light">{{ cita.date.strftime('%Y-%m-%d') }}</td>
-                        <td class="time-highlight">
-                            {{ cita.time.strftime('%H:%M') }}
-                            {% if parts|length > 1 %} - {{ parts[1] }}{% endif %}
+                        <td class="fw-bold text-light">{{ cita.fecha.strftime('%Y-%m-%d') }}</td>
+                        <td class="time-highlight">{{ cita.hora_inicio.strftime('%H:%M') }} – {{ cita.hora_fin.strftime('%H:%M') }}</td>
+                        <td>{{ cita.nombre_cliente }}</td>
+                        <td>
+                            {% for item in cita.servicios_cita %}
+                                <span class="badge bg-dark border border-secondary me-1">{{ item.servicio_rel.nombre }}</span>
+                            {% else %}
+                                <span class="text-secondary small">—</span>
+                            {% endfor %}
                         </td>
-                        <td>{{ cita.client_name }}</td>
-                        <td><span class="badge badge-service">{{ parts[0] }}</span></td>
-                        <td><i class="bi bi-person-fill me-1 text-secondary"></i>Mani {{ cita.stylist_id }}</td>
+                        <td><i class="bi bi-person-fill me-1 text-secondary"></i>{{ cita.empleado.nombre }}</td>
+                        <td>
+                            <span class="badge badge-estado-{{ cita.estado }}">{{ cita.estado|upper }}</span>
+                        </td>
+                        <td class="text-success fw-bold">${{ "%.2f"|format(cita.total) }}</td>
+                        {% if tiene_permiso('citas.borrar') %}
                         <td class="text-end">
-                            <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-danger hover-light ms-2" onclick="return confirm('¿Está seguro de borrar este registro histórico?')">
+                            <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-danger"
+                               onclick="return confirm('¿Eliminar este registro?')">
                                 <i class="bi bi-trash3-fill fs-5"></i>
                             </a>
                         </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center py-5 text-secondary">
-                            <i class="bi bi-calendar-x display-4 opacity-25 d-block mb-3"></i>
-                            No hay registros pasados en el historial.
-                        </td>
-                    </tr>
+                    <tr><td colspan="8" class="text-center py-5 text-secondary">
+                        <i class="bi bi-calendar-x display-4 opacity-25 d-block mb-3"></i>
+                        No hay registros en el historial.
+                    </td></tr>
                 {% endif %}
             </tbody>
         </table>

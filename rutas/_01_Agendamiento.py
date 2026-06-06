@@ -1,24 +1,34 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-<<<<<<< HEAD
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
-=======
-from flask_login import login_required
->>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
-from models import db, Cita, Servicio
+from models import db, Cita, CitaServicio, Servicio, User
+from rutas._helpers import obtener_hora_ecuador, requiere_permiso, tiene_permiso
 from datetime import datetime, timedelta
 import json
 
 agendamiento_bp = Blueprint('agendamiento', __name__)
 
-def obtener_hora_ecuador():
-    return datetime.utcnow() - timedelta(hours=5)
+DIAS_ES  = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']
+MESES_ES = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio',
+            'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+
+def _es_staff(user):
+    """True si el usuario debe aparecer como columna en agendamiento.
+    Staff = tiene citas.ver pero NO contabilidad.ver (no es admin)."""
+    tiene_citas = tiene_cont = False
+    for rol in user.roles:
+        for p in rol.permisos:
+            if p.codigo == 'citas.ver':      tiene_citas = True
+            if p.codigo == 'contabilidad.ver': tiene_cont  = True
+    return tiene_citas and not tiene_cont
 
 @agendamiento_bp.route('/agendamiento', methods=['GET', 'POST'])
 @login_required
+@requiere_permiso('citas.ver')
 def index():
-    ahora = obtener_hora_ecuador()
-    hoy_date = ahora.date()
-    
+    ahora      = obtener_hora_ecuador()
+    hoy_date   = ahora.date()
+    negocio_id = current_user.negocio_id
+
     fecha_min_str = hoy_date.strftime('%Y-%m-%d')
     fecha_max_str = (hoy_date + timedelta(days=30)).strftime('%Y-%m-%d')
 
@@ -28,160 +38,122 @@ def index():
             fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         except ValueError:
             fecha_obj = hoy_date
-            
-        if fecha_obj < hoy_date or fecha_obj > (hoy_date + timedelta(days=30)):
+        if fecha_obj < hoy_date or fecha_obj > hoy_date + timedelta(days=30):
             return redirect(url_for('agendamiento.index'))
     else:
         fecha_obj = hoy_date
 
     if request.method == 'POST':
+        if not tiene_permiso('citas.crear'):
+            flash('Sin permiso para agendar.', 'error')
+            return redirect(url_for('agendamiento.index', fecha=fecha_obj))
         try:
-            estilista = int(request.form.get('stylist_id'))
-            cliente = request.form.get('client_name')
-            
-            servicios_lista = request.form.getlist('service')
-            if not servicios_lista:
-                flash('Error: Debe seleccionar al menos un servicio.', 'error')
-                return redirect(url_for('agendamiento.index', fecha=fecha_obj))
-            
-            hora_str = request.form.get('time')
-            hora_fin_str = request.form.get('time_end')
-            
-            if not hora_str or not hora_fin_str:
-                flash('Error: Rango de tiempo inválido.', 'error')
+            empleado_id    = int(request.form.get('empleado_id'))
+            nombre_cliente = request.form.get('nombre_cliente', '').strip()
+            servicio_ids   = request.form.getlist('servicio_id')
+            hora_ini_str   = request.form.get('hora_inicio')
+            hora_fin_str   = request.form.get('hora_fin')
+
+            if not nombre_cliente or not servicio_ids or not hora_ini_str or not hora_fin_str:
+                flash('Completa todos los campos.', 'error')
                 return redirect(url_for('agendamiento.index', fecha=fecha_obj))
 
-            hora_obj = datetime.strptime(hora_str, '%H:%M').time()
+            hora_ini_obj = datetime.strptime(hora_ini_str, '%H:%M').time()
             hora_fin_obj = datetime.strptime(hora_fin_str, '%H:%M').time()
-            
-            fecha_hora_inicio = datetime.combine(fecha_obj, hora_obj)
-            fecha_hora_fin = datetime.combine(fecha_obj, hora_fin_obj)
-            
-            if fecha_hora_inicio < ahora:
-                flash('Error: El horario seleccionado ya pasó.', 'error')
+            dt_inicio    = datetime.combine(fecha_obj, hora_ini_obj)
+            dt_fin       = datetime.combine(fecha_obj, hora_fin_obj)
+
+            if dt_inicio < ahora:
+                flash('Ese horario ya pasó.', 'error')
                 return redirect(url_for('agendamiento.index', fecha=fecha_obj))
-                
-            if fecha_hora_inicio >= fecha_hora_fin:
-                flash('Error: La hora de fin debe ser posterior a la de inicio.', 'error')
+            if dt_inicio >= dt_fin:
+                flash('La hora de fin debe ser posterior al inicio.', 'error')
                 return redirect(url_for('agendamiento.index', fecha=fecha_obj))
 
-            citas_dia = Cita.query.filter_by(stylist_id=estilista, date=fecha_obj).all()
-            hay_conflicto = False
-            
-            for c in citas_dia:
-                c_inicio = datetime.combine(fecha_obj, c.time)
-                partes = c.service.split('|')
-                c_fin_str = partes[1] if len(partes) > 1 else c.time.strftime('%H:%M')
-                c_fin_obj = datetime.strptime(c_fin_str, '%H:%M').time()
-                c_fin = datetime.combine(fecha_obj, c_fin_obj)
-                
-                # Condición de superposición de rangos
-                if fecha_hora_inicio < c_fin and fecha_hora_fin > c_inicio:
-                    hay_conflicto = True
-                    break
-
-            if hay_conflicto:
-                flash('Error: El horario choca con una cita existente.', 'error')
+            citas_dia = Cita.query.filter_by(negocio_id=negocio_id,
+                                             empleado_id=empleado_id, fecha=fecha_obj).all()
+            if any(dt_inicio < datetime.combine(fecha_obj, c.hora_fin) and
+                   dt_fin    > datetime.combine(fecha_obj, c.hora_inicio) for c in citas_dia):
+                flash('Choca con una cita existente.', 'error')
             else:
-                servicio_texto = ", ".join(servicios_lista) + f"|{hora_fin_str}"
-                
-                nueva_cita = Cita(
-                    stylist_id=estilista,
-                    client_name=cliente,
-                    service=servicio_texto,
-                    date=fecha_obj,
-                    time=hora_obj
-                )
-                db.session.add(nueva_cita)
+                nueva = Cita(negocio_id=negocio_id, empleado_id=empleado_id,
+                             nombre_cliente=nombre_cliente,
+                             telefono_cliente=request.form.get('telefono_cliente', ''),
+                             fecha=fecha_obj, hora_inicio=hora_ini_obj, hora_fin=hora_fin_obj,
+                             estado='pendiente', notas=request.form.get('notas', ''))
+                db.session.add(nueva)
+                db.session.flush()
+                for sid in servicio_ids:
+                    serv = Servicio.query.get(int(sid))
+                    if serv:
+                        db.session.add(CitaServicio(cita_id=nueva.id, servicio_id=serv.id,
+                                                    precio_cobrado=serv.precio_actual))
                 db.session.commit()
-                flash('Cita agendada correctamente', 'success')
-                
+                flash('Cita agendada correctamente.', 'success')
         except Exception as e:
-            flash(f'Error al agendar: {str(e)}', 'error')
-        
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
         return redirect(url_for('agendamiento.index', fecha=fecha_obj))
 
-<<<<<<< HEAD
-    # Filtrado condicional según el rol del usuario conectado
-    es_admin = current_user.role == 'admin'
-    
-    if es_admin:
-        citas_1 = Cita.query.filter_by(date=fecha_obj, stylist_id=1).order_by(Cita.time).all()
-        citas_2 = Cita.query.filter_by(date=fecha_obj, stylist_id=2).order_by(Cita.time).all()
+    # GET — solo manicuristas/staff como columnas, no admins
+    todos_activos   = User.query.filter_by(negocio_id=negocio_id, activo=True).all()
+    staff_agenda    = [u for u in todos_activos if _es_staff(u)]
+
+    if tiene_permiso('usuarios.ver'):
+        empleados_visibles = staff_agenda
     else:
-        # Si no es admin, solo carga las citas que le corresponden a su ID
-        citas_empleada = Cita.query.filter_by(date=fecha_obj, stylist_id=current_user.id).order_by(Cita.time).all()
-        citas_1 = citas_empleada if current_user.id == 1 else []
-        citas_2 = citas_empleada if current_user.id == 2 else []
+        # Manicurista solo se ve a sí misma
+        empleados_visibles = [current_user] if _es_staff(current_user) else []
 
-    rangos_ocupados = {"1": [], "2": []}
-    
-    # El bloqueo de horarios (rangos_ocupados) se calcula para ambas estilistas 
-    # sin importar el rol, para evitar errores en el JS del modal
-    todas_citas_1 = Cita.query.filter_by(date=fecha_obj, stylist_id=1).all()
-    for c in todas_citas_1:
-=======
-    citas_1 = Cita.query.filter_by(date=fecha_obj, stylist_id=1).order_by(Cita.time).all()
-    citas_2 = Cita.query.filter_by(date=fecha_obj, stylist_id=2).order_by(Cita.time).all()
-    
-    rangos_ocupados = {"1": [], "2": []}
-    for c in citas_1:
->>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
-        partes = c.service.split('|')
-        fin = partes[1] if len(partes) > 1 else c.time.strftime('%H:%M')
-        rangos_ocupados["1"].append({"start": c.time.strftime('%H:%M'), "end": fin})
-        
-<<<<<<< HEAD
-    todas_citas_2 = Cita.query.filter_by(date=fecha_obj, stylist_id=2).all()
-    for c in todas_citas_2:
-=======
-    for c in citas_2:
->>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
-        partes = c.service.split('|')
-        fin = partes[1] if len(partes) > 1 else c.time.strftime('%H:%M')
-        rangos_ocupados["2"].append({"start": c.time.strftime('%H:%M'), "end": fin})
-    
-    servicios_bd = Servicio.query.all() 
+    citas_por_empleado = {
+        emp.id: Cita.query.filter_by(negocio_id=negocio_id, empleado_id=emp.id, fecha=fecha_obj)
+                          .order_by(Cita.hora_inicio).all()
+        for emp in empleados_visibles
+    }
 
-    return render_template('agendamiento.html', 
-                           fecha=fecha_obj, 
-                           citas_1=citas_1, 
-                           citas_2=citas_2,
-                           servicios=servicios_bd,
-                           rangos_ocupados=json.dumps(rangos_ocupados),
-                           fecha_min=fecha_min_str,
-<<<<<<< HEAD
-                           fecha_max=fecha_max_str,
-                           es_admin=es_admin) # Pasamos el booleano a la plantilla
-=======
-                           fecha_max=fecha_max_str)
->>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
+    rangos_ocupados = {
+        str(emp.id): [
+            {"start": c.hora_inicio.strftime('%H:%M'), "end": c.hora_fin.strftime('%H:%M')}
+            for c in Cita.query.filter_by(negocio_id=negocio_id,
+                                          empleado_id=emp.id, fecha=fecha_obj).all()
+        ]
+        for emp in staff_agenda
+    }
+
+    servicios_bd = Servicio.query.filter_by(negocio_id=negocio_id, activo=True).all()
+    fecha_prev   = fecha_obj - timedelta(days=1)
+    fecha_next   = fecha_obj + timedelta(days=1)
+    fecha_label  = f"{DIAS_ES[fecha_obj.weekday()]} {fecha_obj.day} de {MESES_ES[fecha_obj.month]}"
+
+    return render_template('agendamiento.html',
+        fecha=fecha_obj, fecha_prev=fecha_prev, fecha_next=fecha_next,
+        fecha_label=fecha_label, empleados_visibles=empleados_visibles,
+        todos_empleados=staff_agenda,
+        citas_por_empleado=citas_por_empleado, servicios=servicios_bd,
+        rangos_ocupados=json.dumps(rangos_ocupados),
+        fecha_min=fecha_min_str, fecha_max=fecha_max_str)
+
 
 @agendamiento_bp.route('/borrar/<int:id>')
 @login_required
+@requiere_permiso('citas.borrar')
 def borrar(id):
     cita = Cita.query.get_or_404(id)
-    try:
-        db.session.delete(cita)
-        db.session.commit()
-        flash('Registro eliminado correctamente', 'success')
-    except Exception as e:
-        flash(f'Error al eliminar: {str(e)}', 'error')
+    if cita.negocio_id != current_user.negocio_id:
+        abort(403)
+    db.session.delete(cita)
+    db.session.commit()
+    flash('Cita eliminada.', 'success')
     return redirect(request.referrer or url_for('agendamiento.index'))
+
 
 @agendamiento_bp.route('/historial_citas')
 @login_required
+@requiere_permiso('citas.ver')
 def historial():
     ahora = obtener_hora_ecuador()
-    hoy_date = ahora.date()
-<<<<<<< HEAD
-    
-    if current_user.role == 'admin':
-        citas_pasadas = Cita.query.filter(Cita.date < hoy_date).order_by(Cita.date.desc(), Cita.time).all()
-    else:
-        citas_pasadas = Cita.query.filter(Cita.date < hoy_date, Cita.stylist_id == current_user.id).order_by(Cita.date.desc(), Cita.time).all()
-        
-=======
-    citas_pasadas = Cita.query.filter(Cita.date < hoy_date).order_by(Cita.date.desc(), Cita.time).all()
->>>>>>> 7e010d9adaaa4b57d913fca94207522479ed482b
-    return render_template('historial_citas.html', citas=citas_pasadas)
+    q = Cita.query.filter(Cita.negocio_id == current_user.negocio_id, Cita.fecha < ahora.date())
+    if not tiene_permiso('usuarios.ver'):
+        q = q.filter(Cita.empleado_id == current_user.id)
+    citas = q.order_by(Cita.fecha.desc(), Cita.hora_inicio).all()
+    return render_template('historial_citas.html', citas=citas)

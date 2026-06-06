@@ -1,78 +1,97 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required
-from models import db, Servicio
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask_login import login_required, current_user
+from models import db, Servicio, HistorialPrecio, CategoriaServicio
+from rutas._helpers import obtener_hora_ecuador, requiere_permiso
 from datetime import datetime, timedelta
-from sqlalchemy import text
 
 admin_servicios_bp = Blueprint('admin_servicios', __name__)
 
-def obtener_hora_ecuador():
-    return datetime.utcnow() - timedelta(hours=5)
-
 @admin_servicios_bp.route('/admin/servicios', methods=['GET', 'POST'])
 @login_required
+@requiere_permiso('servicios.editar')
 def index():
-    try:
-        db.session.execute(text("ALTER TABLE servicio ADD COLUMN precio_promocion FLOAT"))
-        db.session.execute(text("ALTER TABLE servicio ADD COLUMN fecha_fin_promocion DATE"))
-        db.session.commit()
-    except Exception:
-        db.session.rollback()
-
-    ahora = obtener_hora_ecuador()
-    hoy = ahora.date()
+    ahora      = obtener_hora_ecuador()
+    hoy        = ahora.date()
+    negocio_id = current_user.negocio_id
 
     if request.method == 'POST':
+        accion = request.form.get('accion')
         try:
-            accion = request.form.get('accion')
-            
-            if accion == 'agregar':
-                nombre = request.form.get('nombre')
-                precio = float(request.form.get('precio'))
-                nuevo_servicio = Servicio(nombre=nombre, precio=precio)
-                db.session.add(nuevo_servicio)
-                db.session.commit()
-                flash('Servicio agregado', 'success')
-                
-            elif accion == 'editar':
-                id_servicio = int(request.form.get('id'))
-                servicio = Servicio.query.get(id_servicio)
-                if servicio:
-                    servicio.nombre = request.form.get('nombre')
-                    servicio.precio = float(request.form.get('precio'))
+            if accion == 'agregar_categoria':
+                nombre = request.form.get('nombre_categoria', '').strip()
+                if nombre:
+                    db.session.add(CategoriaServicio(negocio_id=negocio_id, nombre=nombre, orden=0))
                     db.session.commit()
-                    flash('Precio base actualizado', 'success')
+                    flash('Categoría agregada.', 'success')
+
+            elif accion == 'eliminar_categoria':
+                cat = CategoriaServicio.query.get_or_404(int(request.form.get('id')))
+                if cat.negocio_id != negocio_id: abort(403)
+                db.session.delete(cat)
+                db.session.commit()
+                flash('Categoría eliminada.', 'success')
+
+            elif accion == 'agregar':
+                cat_id = request.form.get('categoria_id') or None
+                nuevo  = Servicio(negocio_id=negocio_id,
+                                  categoria_id=int(cat_id) if cat_id else None,
+                                  nombre=request.form.get('nombre','').strip(),
+                                  duracion_min=int(request.form.get('duracion_min', 60)),
+                                  activo=True)
+                db.session.add(nuevo)
+                db.session.flush()
+                db.session.add(HistorialPrecio(
+                    servicio_id=nuevo.id, precio=float(request.form.get('precio')),
+                    es_promocion=False, fecha_inicio=hoy, motivo='Precio inicial'))
+                db.session.commit()
+                flash('Servicio agregado.', 'success')
+
+            elif accion == 'editar':
+                serv = Servicio.query.get_or_404(int(request.form.get('id')))
+                if serv.negocio_id != negocio_id: abort(403)
+                nuevo_precio = float(request.form.get('precio'))
+                cat_id = request.form.get('categoria_id') or None
+                serv.nombre       = request.form.get('nombre', serv.nombre).strip()
+                serv.duracion_min = int(request.form.get('duracion_min', serv.duracion_min))
+                serv.categoria_id = int(cat_id) if cat_id else None
+                if nuevo_precio != serv.precio_actual:
+                    db.session.add(HistorialPrecio(
+                        servicio_id=serv.id, precio=nuevo_precio,
+                        es_promocion=False, fecha_inicio=hoy, motivo='Actualización'))
+                db.session.commit()
+                flash('Servicio actualizado.', 'success')
 
             elif accion == 'promocion':
-                id_servicio = int(request.form.get('id'))
-                servicio = Servicio.query.get(id_servicio)
-                if servicio:
-                    servicio.precio_promocion = float(request.form.get('precio_promocion'))
-                    servicio.fecha_fin_promocion = datetime.strptime(request.form.get('fecha_fin'), '%Y-%m-%d').date()
-                    db.session.commit()
-                    flash('Promoción activada', 'success')
-                    
-            elif accion == 'quitar_promocion':
-                id_servicio = int(request.form.get('id'))
-                servicio = Servicio.query.get(id_servicio)
-                if servicio:
-                    servicio.precio_promocion = None
-                    servicio.fecha_fin_promocion = None
-                    db.session.commit()
-                    flash('Promoción retirada', 'success')
-                    
-            elif accion == 'eliminar':
-                id_servicio = int(request.form.get('id'))
-                servicio = Servicio.query.get(id_servicio)
-                if servicio:
-                    db.session.delete(servicio)
-                    db.session.commit()
-                    flash('Registro eliminado', 'success')
-                    
-        except Exception as e:
-            flash(f'Error en la operación: {str(e)}', 'error')
+                serv = Servicio.query.get_or_404(int(request.form.get('id')))
+                if serv.negocio_id != negocio_id: abort(403)
+                fecha_fin = datetime.strptime(request.form.get('fecha_fin'), '%Y-%m-%d').date()
+                db.session.add(HistorialPrecio(
+                    servicio_id=serv.id, precio=float(request.form.get('precio_promocion')),
+                    es_promocion=True, fecha_inicio=hoy, fecha_fin=fecha_fin, motivo='Promoción'))
+                db.session.commit()
+                flash('Promoción activada.', 'success')
 
+            elif accion == 'quitar_promocion':
+                serv = Servicio.query.get_or_404(int(request.form.get('id')))
+                if serv.negocio_id != negocio_id: abort(403)
+                promo = serv.promo_activa
+                if promo:
+                    promo.fecha_fin = hoy - timedelta(days=1)
+                    db.session.commit()
+                flash('Promoción retirada.', 'success')
+
+            elif accion == 'eliminar':
+                serv = Servicio.query.get_or_404(int(request.form.get('id')))
+                if serv.negocio_id != negocio_id: abort(403)
+                db.session.delete(serv)
+                db.session.commit()
+                flash('Servicio eliminado.', 'success')
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {str(e)}', 'error')
         return redirect(url_for('admin_servicios.index'))
 
-    servicios_db = Servicio.query.order_by(Servicio.nombre).all()
-    return render_template('admin_servicios.html', servicios=servicios_db, hoy=hoy)
+    categorias = CategoriaServicio.query.filter_by(negocio_id=negocio_id).order_by(CategoriaServicio.orden).all()
+    servicios  = Servicio.query.filter_by(negocio_id=negocio_id).order_by(Servicio.nombre).all()
+    return render_template('admin_servicios.html', servicios=servicios, categorias=categorias, hoy=hoy)
