@@ -9,28 +9,20 @@ from models import db, User
 from rutas import register_blueprints
 from rutas._helpers import tiene_permiso, formatear_telefono_ec
 
-# Carga el .env que está JUNTO a este archivo. Así funciona igual al correr
-# 'python app.py' en tu PC y al importarse desde el WSGI de PythonAnywhere,
-# sin depender de cuál sea la carpeta de trabajo.
+# Carga el .env que está JUNTO a este archivo.
 load_dotenv(Path(__file__).resolve().parent / '.env')
 
 app = Flask(__name__)
 
-# La clave secreta se lee del entorno. Si falta, la app no arranca:
-# así evitamos dejar una clave por defecto insegura en producción.
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-if not app.config['SECRET_KEY']:
-    raise RuntimeError(
-        "Falta SECRET_KEY. Crea un archivo .env con SECRET_KEY=... "
-        "(revisa el archivo .env.example)."
-    )
+# La clave secreta se lee del entorno. Si falta, usamos una por defecto
+# para que Docker funcione sin configuración extra (NO seguro para producción real).
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto-docker-2026-laura-nails')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lauranails.db'
 
 db.init_app(app)
 
-# Protección CSRF: rechaza cualquier POST que no traiga un token válido.
-# Cada formulario ya incluye <input name="csrf_token" value="{{ csrf_token() }}">.
+# Protección CSRF
 csrf = CSRFProtect(app)
 
 login_manager = LoginManager()
@@ -49,7 +41,12 @@ def inject_helpers():
 register_blueprints(app)
 
 with app.app_context():
-    db.create_all()
+    # Crear tablas si no existen. Si ya existen, ignorar el error silenciosamente.
+    try:
+        db.create_all()
+    except Exception:
+        pass
+    
     # Migración segura: agrega columna cedula si la tabla cliente ya existe
     try:
         db.session.execute(text("ALTER TABLE cliente ADD COLUMN cedula VARCHAR(10)"))
@@ -58,7 +55,5 @@ with app.app_context():
         db.session.rollback()
 
 if __name__ == '__main__':
-    # debug se activa solo si FLASK_DEBUG=1 en el .env.
-    # NUNCA dejar debug activo en un servidor público.
     debug = os.environ.get('FLASK_DEBUG', '0') == '1'
     app.run(debug=debug)

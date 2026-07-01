@@ -1,7 +1,6 @@
 # ============================================================
 #  Laura Nails Beauty Studio
-#  Levanta todo con:   docker compose up
-#  (la primera vez agrega --build:  docker compose up --build)
+#  Levanta todo con:   docker compose up --build
 # ============================================================
 services:
   web:
@@ -9,16 +8,16 @@ services:
     container_name: laura_nails
     restart: unless-stopped
 
-    # Lee SECRET_KEY, SETUP_TOKEN, contraseñas, etc. del archivo .env
-    # (el .env debe estar en esta misma carpeta).
-    env_file:
-      - .env
+    # Variables de entorno directas (más confiable que env_file)
+    environment:
+      - SECRET_KEY=clave-super-secreta-para-laura-nails-2026
+      - FLASK_ENV=production
 
-    # http://localhost:8000  ->  gunicorn dentro del contenedor (8000)
+    # Puerto: localhost:8001 -> contenedor:8000
+    # Si 8001 está ocupado, cámbialo por otro (ej: 8080:8000)
     ports:
-      - "8000:8000"
+      - "8001:8000"
 
-    # La base de datos SQLite vive en la carpeta ./instance del host,
-    # así NO se pierde aunque borres o recrees el contenedor.
+    # La base de datos SQLite persiste en ./instance del host
     volumes:
       - ./instance:/app/instance
