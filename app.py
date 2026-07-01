@@ -1,6 +1,4 @@
 import os
-from pathlib import Path
-from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
@@ -9,14 +7,9 @@ from models import db, User
 from rutas import register_blueprints
 from rutas._helpers import tiene_permiso, formatear_telefono_ec
 
-# Carga .env solo si existe, pero NO sobreescribe variables ya definidas (Docker las define)
-dotenv_path = Path(__file__).resolve().parent / '.env'
-if dotenv_path.exists():
-    load_dotenv(dotenv_path, override=False)
-
 app = Flask(__name__)
 
-# SECRET_KEY: Docker ya la puso en el entorno, o usa default
+# SECRET_KEY: Docker la provee en el entorno, o usa default para desarrollo local
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto-docker-2026-laura-nails')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lauranails.db'
