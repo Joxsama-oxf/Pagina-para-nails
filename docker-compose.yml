@@ -16,7 +16,7 @@ services:
 
     # http://localhost:8000  ->  gunicorn dentro del contenedor (8000)
     ports:
-      - "8000:8000"
+      - "8001:8000"
 
     # La base de datos SQLite vive en la carpeta ./instance del host,
     # así NO se pierde aunque borres o recrees el contenedor.
