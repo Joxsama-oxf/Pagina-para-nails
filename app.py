@@ -10,13 +10,15 @@ from rutas import register_blueprints
 from rutas._helpers import tiene_permiso, formatear_telefono_ec
 
 # Carga el .env que esta JUNTO a este archivo.
-load_dotenv(Path(__file__).resolve().parent / '.env')
+# En Docker, las variables ya vienen del environment, asi que solo cargamos .env si falta SECRET_KEY.
+dotenv_path = Path(__file__).resolve().parent / '.env'
+if dotenv_path.exists():
+    load_dotenv(dotenv_path)
 
 app = Flask(__name__)
 
-# La clave secreta se lee del entorno. Si falta, usamos una por defecto
-# para que Docker funcione sin configuracion extra.
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto-docker-2026-laura-nails')
+# La clave secreta: primero intenta del entorno (Docker), luego del .env (local), luego default.
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'clave-por-defecto-docker-2026-laura-nails'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lauranails.db'
 
