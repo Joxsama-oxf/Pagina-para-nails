@@ -9,15 +9,15 @@ from models import db, User
 from rutas import register_blueprints
 from rutas._helpers import tiene_permiso, formatear_telefono_ec
 
-# Carga el .env solo si existe y si no estamos en Docker (Docker ya tiene las variables en environment)
+# Carga .env solo si existe, pero NO sobreescribe variables ya definidas (Docker las define)
 dotenv_path = Path(__file__).resolve().parent / '.env'
-if dotenv_path.exists() and not os.environ.get('DOCKER_CONTAINER'):
-    load_dotenv(dotenv_path)
+if dotenv_path.exists():
+    load_dotenv(dotenv_path, override=False)
 
 app = Flask(__name__)
 
-# SECRET_KEY: primero busca en variables de entorno (Docker), luego en .env (local), luego default
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'clave-por-defecto-docker-2026-laura-nails'
+# SECRET_KEY: Docker ya la puso en el entorno, o usa default
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-por-defecto-docker-2026-laura-nails')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lauranails.db'
 
