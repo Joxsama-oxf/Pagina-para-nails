@@ -1,20 +1,33 @@
-# Variables de entorno y secretos (¡IMPORTANTE!)
-.env
-
 # Python
 __pycache__/
 *.py[cod]
-*.egg-info/
-.venv/
-venv/
+*$py.class
+*.so
+.Python
 env/
+venv/
+ENV/
+.venv/
 
-# Base de datos local (datos del negocio)
-*.db
+# Flask
 instance/
+*.db
+*.sqlite
+*.sqlite3
 
-# Sistema operativo / editores
-.DS_Store
-Thumbs.db
+# Environment variables
+.env
+.env.local
+
+# Docker
+*.pid
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

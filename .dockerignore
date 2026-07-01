@@ -1,32 +1,38 @@
-# Entornos virtuales y caché de Python
-.venv/
-venv/
-env/
+# Variables de entorno (nunca se hornean en la imagen)
+.env
+.env.local
+
+# Base de datos local (el profesor genera la suya)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
 
-# Control de versiones
+# Entornos virtuales
+venv/
+env/
+ENV/
+.venv/
+
+# Git
 .git/
 .gitignore
 
-# Secretos: NO se hornean en la imagen; se inyectan con env_file en compose
-.env
-.env.example
-
-# Base de datos: vive en un volumen (./instance), no dentro de la imagen
-instance/
-*.db
-
-# Archivos del propio Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
-
-# Archivos de sistema/editores
-.DS_Store
-Thumbs.db
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Ejemplos / docs que no necesita la imagen
-wsgi_pythonanywhere_EJEMPLO.py
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
