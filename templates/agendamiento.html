@@ -7,26 +7,45 @@
 <style>
     body{background:transparent;color:white;}
     .font-title{font-family:'Playfair Display',serif;}
-    .fecha-nav{background:rgba(30,30,30,0.85);border:1px solid #444;border-radius:12px;padding:10px 20px;display:flex;align-items:center;gap:12px;}
-    .fecha-nav a{color:#ec407a;text-decoration:none;font-size:1.4rem;line-height:1;}
+    .fecha-nav{background:rgba(30,30,30,0.85);border:1px solid #444;border-radius:12px;padding:10px 20px;display:inline-flex;align-items:center;gap:12px;}
+    .fecha-nav a{color:#ec407a;text-decoration:none;font-size:1.4rem;}
     .fecha-nav a:hover{color:white;}
     .col-empleado{background:rgba(25,25,25,0.85);border:1px solid #333;border-radius:12px;overflow:hidden;min-width:230px;flex:1;}
     .col-header{background:linear-gradient(135deg,#d81b60,#880e4f);padding:12px 15px;font-weight:700;font-size:0.9rem;text-transform:uppercase;letter-spacing:1px;}
     .cita-card{background:rgba(40,40,40,0.9);border-left:4px solid #ec407a;border-radius:0 8px 8px 0;padding:10px 12px;margin:8px;transition:0.2s;}
     .cita-card:hover{background:rgba(55,55,55,0.9);}
     .cita-hora{color:#ffb6c1;font-weight:700;font-size:0.85rem;}
-    .cita-cliente{color:white;font-weight:600;font-size:0.95rem;}
+    .cita-cliente{color:white;font-weight:600;}
     .cita-servicios{color:#aaa;font-size:0.75rem;margin-top:3px;}
-    .vacio-msg{text-align:center;padding:30px 15px;color:#555;font-size:0.85rem;}
+    .vacio-msg{text-align:center;padding:30px 15px;color:#555;}
     .btn-rosa{background:linear-gradient(45deg,#ec407a,#d81b60);color:white;border:none;font-weight:bold;border-radius:8px;}
     .btn-rosa:hover{opacity:0.9;color:white;}
     .modal-dark .modal-content{background:#1e1e1e;border:1px solid #444;color:white;}
-    .modal-dark .modal-header{border-bottom:1px solid #333;}
-    .modal-dark .modal-footer{border-top:1px solid #333;}
+    .modal-dark .modal-header,.modal-dark .modal-footer{border-color:#333;}
     .form-dark{background:#2d2d2d!important;border:1px solid #444!important;color:#fff!important;border-radius:8px;}
     .form-dark:focus{background:#333!important;border-color:#ec407a!important;color:#fff!important;box-shadow:0 0 0 0.2rem rgba(236,64,122,0.2)!important;}
-    .srv-check{background:#2a2a2a;border:1px solid #444;border-radius:8px;padding:8px 12px;cursor:pointer;transition:0.2s;margin-bottom:6px;}
+    .form-dark::placeholder{color:#666!important;}
+    .srv-check{background:#2a2a2a;border:1px solid #444;border-radius:8px;padding:8px 12px;margin-bottom:6px;cursor:pointer;transition:0.2s;}
     .srv-check:hover{border-color:#ec407a;}
+    .label-small{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px;display:block;}
+
+    /* Búsqueda de clientes */
+    .cliente-search-wrap{position:relative;}
+    .cliente-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#2a2a2a;border:1px solid #ec407a;border-radius:10px;z-index:9999;max-height:220px;overflow-y:auto;display:none;box-shadow:0 8px 20px rgba(0,0,0,0.5);}
+    .cliente-opt{padding:10px 14px;cursor:pointer;border-bottom:1px solid #333;transition:0.15s;}
+    .cliente-opt:last-child{border-bottom:none;}
+    .cliente-opt:hover{background:rgba(236,64,122,0.15);}
+    .cliente-opt-nombre{font-weight:600;color:white;font-size:0.9rem;}
+    .cliente-opt-sub{font-size:0.75rem;color:#888;margin-top:2px;}
+    .cliente-seleccionado{background:rgba(0,200,83,0.08);border:1px solid #00c853;border-radius:10px;padding:8px 14px;font-size:0.85rem;display:none;margin-top:6px;}
+    .sin-resultados{padding:12px 14px;color:#666;font-size:0.85rem;text-align:center;}
+
+    /* Cédula SRI */
+    .cedula-wrap{position:relative;}
+    .cedula-ico{position:absolute;right:40px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;}
+    .btn-sri{position:absolute;right:0;top:0;bottom:0;background:#1565c0;color:white;border:none;border-radius:0 8px 8px 0;padding:0 10px;font-size:0.75rem;font-weight:700;white-space:nowrap;display:none;}
+    .btn-sri:hover{background:#1976d2;}
+    .sri-status{font-size:0.75rem;margin-top:4px;display:none;}
 </style>
 
 <div class="container-fluid py-3 px-3" style="position:relative;z-index:2;">
@@ -39,16 +58,16 @@
         {% endif %}
     </div>
 
-    <div class="fecha-nav mb-3 d-inline-flex">
+    <div class="fecha-nav mb-3">
         <a href="{{ url_for('agendamiento.index', fecha=fecha_prev.strftime('%Y-%m-%d')) }}"><i class="bi bi-chevron-left"></i></a>
-        <form method="GET" action="{{ url_for('agendamiento.index') }}" class="d-flex align-items-center gap-2 mx-2">
+        <form method="GET" action="{{ url_for('agendamiento.index') }}" class="d-flex align-items-center gap-2 mx-1">
             <input type="date" name="fecha" value="{{ fecha.strftime('%Y-%m-%d') }}"
                    min="{{ fecha_min }}" max="{{ fecha_max }}"
-                   class="form-dark form-control form-control-sm" style="width:150px;"
+                   class="form-dark form-control form-control-sm" style="width:148px;"
                    onchange="this.form.submit()">
         </form>
         <a href="{{ url_for('agendamiento.index', fecha=fecha_next.strftime('%Y-%m-%d')) }}"><i class="bi bi-chevron-right"></i></a>
-        <span class="ms-3 text-secondary small align-self-center">{{ fecha_label }}</span>
+        <span class="ms-2 text-secondary small align-self-center">{{ fecha_label }}</span>
     </div>
 
     <div class="d-flex gap-3 overflow-auto pb-3" style="align-items:flex-start;">
@@ -65,19 +84,39 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div style="flex:1;">
                                 <div class="cita-hora">{{ cita.hora_inicio.strftime('%H:%M') }} – {{ cita.hora_fin.strftime('%H:%M') }}</div>
-                                <div class="cita-cliente">{{ cita.nombre_cliente }}</div>
-                                <div class="cita-servicios">
-                                    {% for item in cita.servicios_cita %}{{ item.servicio_rel.nombre }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                <div class="cita-cliente">
+                                    {% if cita.cliente_id %}
+                                    <a href="{{ url_for('clientes.detalle', id=cita.cliente_id) }}" class="text-white text-decoration-none">{{ cita.nombre_cliente }}</a>
+                                    {% else %}{{ cita.nombre_cliente }}{% endif %}
                                 </div>
+                                <div class="cita-servicios">{% for item in cita.servicios_cita %}{{ item.servicio_rel.nombre }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
                                 <div class="mt-1">
-                                    <span class="badge {% if cita.estado == 'pagada' %}bg-success{% elif cita.estado == 'cancelada' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:0.65rem;">{{ cita.estado|upper }}</span>
+                                    <span class="badge {% if cita.estado=='pagada' %}bg-success{% elif cita.estado=='cancelada' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:0.65rem;">{{ cita.estado|upper }}</span>
                                     <span class="text-success small ms-2 fw-bold">${{ "%.2f"|format(cita.total) }}</span>
                                 </div>
                             </div>
-                            {% if tiene_permiso('citas.borrar') %}
-                            <a href="{{ url_for('agendamiento.borrar', id=cita.id) }}" class="text-danger ms-2"
-                               onclick="return confirm('¿Eliminar esta cita?')"><i class="bi bi-trash3-fill"></i></a>
-                            {% endif %}
+                            <div class="d-flex flex-column align-items-center gap-2 ms-2">
+                                {% set wa_num = formatear_telefono_ec(cita.telefono_cliente) %}
+                                {% if wa_num %}
+                                {% set wa_msg = 'Hola ' ~ cita.nombre_cliente ~ ' 💅 Te recordamos tu cita en Laura Nails Beauty Studio el ' ~ cita.fecha.strftime('%d/%m/%Y') ~ ' a las ' ~ cita.hora_inicio.strftime('%H:%M') ~ '. ¡Te esperamos!' %}
+                                <a href="https://wa.me/{{ wa_num }}?text={{ wa_msg|urlencode }}"
+                                   target="_blank" rel="noopener"
+                                   class="text-success p-0" title="Enviar recordatorio por WhatsApp"
+                                   style="font-size:1.15rem;line-height:1;">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                                {% endif %}
+                                {% if tiene_permiso('citas.borrar') %}
+                                <form action="{{ url_for('agendamiento.borrar', id=cita.id) }}" method="POST"
+                                      class="d-inline" onsubmit="return confirm('¿Eliminar cita de {{ cita.nombre_cliente }}?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-link text-danger p-0 border-0"
+                                            style="text-decoration:none;line-height:1;">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -107,40 +146,113 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('agendamiento.index', fecha=fecha.strftime('%Y-%m-%d')) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Empleada</label>
-                            <select name="empleado_id" class="form-select form-dark" required id="selEmp" onchange="actualizarRangos()">
+
+                        <!-- Empleada -->
+                        <div class="col-12">
+                            <label class="label-small">Empleada</label>
+                            <select name="empleado_id" class="form-select form-dark" required
+                                    id="selEmp" onchange="actualizarRangos()">
                                 {% for emp in todos_empleados %}
                                 <option value="{{ emp.id }}">{{ emp.nombre }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Cliente</label>
-                            <input type="text" name="nombre_cliente" class="form-control form-dark" placeholder="Nombre del cliente" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Teléfono (opcional)</label>
-                            <input type="tel" name="telefono_cliente" class="form-control form-dark" placeholder="0999...">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Hora inicio</label>
-                            <input type="time" name="hora_inicio" id="horaIni" class="form-control form-dark" required min="08:00" max="20:00" onchange="validarHorario()">
-                            <div id="alertaHorario" class="text-danger small mt-1" style="display:none;">Horario ocupado</div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Hora fin</label>
-                            <input type="time" name="hora_fin" id="horaFin" class="form-control form-dark" required min="08:00" max="21:00" onchange="validarHorario()">
-                        </div>
+
+                        <!-- ── SECCIÓN CLIENTE ──────────────────────────── -->
                         <div class="col-12">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Servicios</label>
+                            <div class="p-3 rounded-3" style="background:rgba(236,64,122,0.04);border:1px solid rgba(236,64,122,0.2);">
+                                <p class="label-small mb-2" style="color:#ec407a;">
+                                    <i class="bi bi-person-badge me-1"></i>Cliente
+                                </p>
+
+                                <!-- Buscar cliente existente -->
+                                <label class="label-small">Buscar cliente existente (nombre o cédula)</label>
+                                <div class="cliente-search-wrap mb-2">
+                                    <input type="text" id="buscadorCliente"
+                                           class="form-control form-dark"
+                                           placeholder="Escribe para buscar..."
+                                           oninput="filtrarClientes(this.value)"
+                                           autocomplete="off">
+                                    <div class="cliente-dropdown" id="clienteDropdown"></div>
+                                </div>
+                                <div class="cliente-seleccionado" id="clienteSeleccionado">
+                                    <i class="bi bi-person-check-fill text-success me-2"></i>
+                                    <span id="clienteSelNombre"></span>
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2"
+                                            onclick="limpiarCliente()">✕ cambiar</button>
+                                </div>
+
+                                <!-- Separador -->
+                                <div class="d-flex align-items-center gap-2 my-3">
+                                    <hr style="flex:1;border-color:#333;">
+                                    <span class="text-secondary small">o ingresa datos de cliente nuevo</span>
+                                    <hr style="flex:1;border-color:#333;">
+                                </div>
+
+                                <!-- Cédula con SRI -->
+                                <div class="row g-2">
+                                    <div class="col-md-5">
+                                        <label class="label-small">Cédula</label>
+                                        <div class="cedula-wrap">
+                                            <input type="text" name="cedula" id="inpCedula"
+                                                   class="form-control form-dark pe-5"
+                                                   placeholder="10 dígitos" maxlength="10"
+                                                   inputmode="numeric"
+                                                   oninput="this.value=this.value.replace(/\D/g,''); onCedulaInput(this.value)"
+                                                   style="padding-right:80px!important;">
+                                            <span class="cedula-ico" id="cedulaIco"></span>
+                                            <button type="button" class="btn-sri" id="btnSRI"
+                                                    onclick="buscarEnSRI()">
+                                                SRI <i class="bi bi-search"></i>
+                                            </button>
+                                        </div>
+                                        <div class="sri-status" id="sriStatus"></div>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label class="label-small">Nombre del cliente *</label>
+                                        <input type="text" name="nombre_cliente" id="inpNombre"
+                                               class="form-control form-dark"
+                                               placeholder="Nombre completo" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="label-small">Teléfono (opcional)</label>
+                                        <input type="tel" name="telefono_cliente" id="inpTel"
+                                               class="form-control form-dark" placeholder="0999...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ─────────────────────────────────────────────── -->
+
+                        <!-- Horario -->
+                        <div class="col-md-6">
+                            <label class="label-small">Hora inicio</label>
+                            <input type="time" name="hora_inicio" id="horaIni"
+                                   class="form-control form-dark" required min="08:00" max="20:00"
+                                   onchange="validarHorario()">
+                            <div id="alertaHorario" class="text-danger small mt-1" style="display:none;">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Horario ocupado
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="label-small">Hora fin</label>
+                            <input type="time" name="hora_fin" id="horaFin"
+                                   class="form-control form-dark" required min="08:00" max="21:00"
+                                   onchange="validarHorario()">
+                        </div>
+
+                        <!-- Servicios -->
+                        <div class="col-12">
+                            <label class="label-small">Servicios</label>
                             <div class="row g-2">
                                 {% for s in servicios %}
                                 <div class="col-md-4 col-6">
                                     <div class="srv-check d-flex align-items-center gap-2">
-                                        <input class="form-check-input" type="checkbox" name="servicio_id" value="{{ s.id }}" id="srv{{ s.id }}">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="servicio_id" value="{{ s.id }}" id="srv{{ s.id }}">
                                         <label for="srv{{ s.id }}" class="flex-grow-1 mb-0" style="cursor:pointer;">
                                             <span class="small text-light">{{ s.nombre }}</span>
                                             <span class="d-block text-success small fw-bold">${{ "%.2f"|format(s.precio_actual) }}</span>
@@ -150,38 +262,195 @@
                                 {% endfor %}
                             </div>
                         </div>
+
+                        <!-- Notas -->
                         <div class="col-12">
-                            <label class="text-secondary small mb-1 fw-bold text-uppercase">Notas (opcional)</label>
+                            <label class="label-small">Notas (opcional)</label>
                             <input type="text" name="notas" class="form-control form-dark" placeholder="...">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-rosa px-5 py-2 w-100" id="btnGuardar">Agendar Cita</button>
+                    <button type="submit" class="btn btn-rosa px-5 py-2 w-100" id="btnGuardar">
+                        Agendar Cita
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<script id="rangos-data" type="application/json">{{ rangos_ocupados | safe }}</script>
+<script id="rangos-data"        type="application/json">{{ rangos_ocupados | safe }}</script>
+<script id="cedula-data"        type="application/json">{{ clientes_por_cedula | safe }}</script>
+<script id="nombre-data"        type="application/json">{{ clientes_por_nombre | safe }}</script>
+<script id="todos-clientes-data" type="application/json">
+{{ clientes_por_nombre | safe }}
+</script>
 <script>
-const rangos = JSON.parse(document.getElementById('rangos-data').textContent);
+const rangos         = JSON.parse(document.getElementById('rangos-data').textContent);
+const clientesCedula = JSON.parse(document.getElementById('cedula-data').textContent);
+const clientesNombre = JSON.parse(document.getElementById('nombre-data').textContent);
+
+// Lista completa para el buscador (por nombre y cédula)
+const todosClientes = Object.values(clientesNombre);
+// También indexar por cédula para búsqueda mixta
+Object.entries(clientesCedula).forEach(([ced, info]) => {
+    if (!clientesNombre[info.nombre.toLowerCase()]) {
+        todosClientes.push({...info, cedula: ced});
+    } else {
+        // agregar cedula al existente
+        const key = info.nombre.toLowerCase();
+        if (clientesNombre[key]) clientesNombre[key].cedula = ced;
+    }
+});
+
+// ── Validación cédula ecuatoriana ─────────────────────────────────────────
+function validarCedulaEC(c) {
+    if (!/^\d{10}$/.test(c)) return false;
+    const prov = parseInt(c.substring(0, 2));
+    if (prov < 1 || (prov > 24 && prov !== 30)) return false;
+    const d = c.split('').map(Number);
+    let s = 0;
+    for (let i = 0; i < 9; i++) { let v=d[i]; if(i%2===0){v*=2;if(v>9)v-=9;} s+=v; }
+    return (10-(s%10))%10===d[9];
+}
+
+// ── Buscador de clientes existentes ──────────────────────────────────────
+function filtrarClientes(val) {
+    const dd  = document.getElementById('clienteDropdown');
+    const txt = val.trim().toLowerCase();
+    if (txt.length < 1) { dd.style.display='none'; return; }
+
+    const resultados = Object.entries(clientesNombre).filter(([key, info]) =>
+        key.includes(txt) ||
+        (info.cedula || '').includes(txt) ||
+        (info.telefono || '').includes(txt)
+    ).slice(0, 8);
+
+    if (resultados.length === 0) {
+        dd.innerHTML = '<div class="sin-resultados">No encontrado — completa los campos abajo</div>';
+        dd.style.display = 'block';
+        return;
+    }
+
+    dd.innerHTML = resultados.map(([key, info]) => `
+        <div class="cliente-opt" onclick="seleccionarCliente('${info.nombre.replace(/'/g,"\\'")}',
+             '${(info.telefono||'').replace(/'/g,"\\'")}',
+             '${(info.cedula||'').replace(/'/g,"\\'")}')">
+            <div class="cliente-opt-nombre">${info.nombre}</div>
+            <div class="cliente-opt-sub">
+                ${info.cedula ? '🪪 '+info.cedula+'  ' : ''}
+                ${info.telefono ? '📞 '+info.telefono : ''}
+            </div>
+        </div>`).join('');
+    dd.style.display = 'block';
+}
+
+function seleccionarCliente(nombre, tel, cedula) {
+    document.getElementById('inpNombre').value  = nombre;
+    document.getElementById('inpTel').value     = tel;
+    document.getElementById('inpCedula').value  = cedula;
+    document.getElementById('buscadorCliente').value = '';
+    document.getElementById('clienteDropdown').style.display = 'none';
+    document.getElementById('clienteSelNombre').textContent  = nombre + (cedula ? ' · ' + cedula : '');
+    document.getElementById('clienteSeleccionado').style.display = 'block';
+    document.getElementById('inpNombre').readOnly = true;
+    document.getElementById('inpNombre').style.opacity = '0.6';
+}
+
+function limpiarCliente() {
+    ['inpNombre','inpTel','inpCedula'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = ''; el.readOnly = false; el.style.opacity = '1';
+    });
+    document.getElementById('clienteSeleccionado').style.display = 'none';
+    document.getElementById('buscadorCliente').value = '';
+    document.getElementById('cedulaIco').textContent = '';
+    document.getElementById('btnSRI').style.display  = 'none';
+    document.getElementById('sriStatus').style.display = 'none';
+}
+
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click', e => {
+    if (!e.target.closest('.cliente-search-wrap'))
+        document.getElementById('clienteDropdown').style.display = 'none';
+});
+
+// ── Cédula input ──────────────────────────────────────────────────────────
+function onCedulaInput(val) {
+    const ico = document.getElementById('cedulaIco');
+    const sri = document.getElementById('btnSRI');
+    const st  = document.getElementById('sriStatus');
+    if (val.length < 10) { ico.textContent=''; sri.style.display='none'; st.style.display='none'; return; }
+    if (validarCedulaEC(val)) {
+        ico.textContent='✓'; ico.style.color='#69f0ae';
+        sri.style.display='block';
+        // Si ya existe el cliente, llenar automáticamente
+        if (clientesCedula[val]) {
+            const c = clientesCedula[val];
+            seleccionarCliente(c.nombre, c.telefono||'', val);
+        }
+    } else {
+        ico.textContent='✕'; ico.style.color='#ff8a80';
+        sri.style.display='none';
+    }
+    st.style.display='none';
+}
+
+// ── Consulta al SRI ───────────────────────────────────────────────────────
+function buscarEnSRI() {
+    const cedula = document.getElementById('inpCedula').value;
+    const st     = document.getElementById('sriStatus');
+    const btn    = document.getElementById('btnSRI');
+    btn.disabled = true;
+    btn.textContent = '...';
+    st.style.display = 'block';
+    st.style.color   = '#90caf9';
+    st.textContent   = 'Consultando SRI...';
+
+    fetch(`/api/cedula/${cedula}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.encontrado) {
+                document.getElementById('inpNombre').value = data.nombre;
+                st.style.color   = '#69f0ae';
+                st.textContent   = '✓ Nombre obtenido del SRI';
+            } else if (data.sri_disponible) {
+                // El SRI respondió pero no hay datos: mensaje neutral, no bloquea
+                st.style.color   = '#ffb74d';
+                st.textContent   = 'ℹ ' + (data.error || 'Sin datos en el SRI') + '. Escribe el nombre a mano.';
+            } else {
+                // El SRI está caído: nunca culpamos al usuario ni lo frenamos
+                st.style.color   = '#ffb74d';
+                st.textContent   = 'ℹ El SRI no respondió. Escribe el nombre a mano — igual puedes guardar.';
+            }
+        })
+        .catch(() => {
+            st.style.color   = '#ffb74d';
+            st.textContent   = 'ℹ No se pudo consultar el SRI. Escribe el nombre a mano — igual puedes guardar.';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'SRI <i class="bi bi-search"></i>';
+        });
+}
+
+// ── Validación horario ────────────────────────────────────────────────────
 function toMin(t){ if(!t)return 0; const[h,m]=t.split(':').map(Number); return h*60+m; }
 function actualizarRangos(){ validarHorario(); }
 function validarHorario(){
     const empId = document.getElementById('selEmp').value;
     const ini   = document.getElementById('horaIni').value;
     const fin   = document.getElementById('horaFin').value;
-    const alerta= document.getElementById('alertaHorario');
-    const btn   = document.getElementById('btnGuardar');
     if(!ini||!fin||!empId)return;
     const iniM=toMin(ini), finM=toMin(fin);
-    const ocupados = rangos[empId]||[];
-    const conflicto = ocupados.some(r=>iniM<toMin(r.end)&&finM>toMin(r.start));
-    alerta.style.display = conflicto?'block':'none';
-    btn.disabled = conflicto||finM<=iniM;
+    const conflicto=(rangos[empId]||[]).some(r=>iniM<toMin(r.end)&&finM>toMin(r.start));
+    document.getElementById('alertaHorario').style.display=conflicto?'block':'none';
+    document.getElementById('btnGuardar').disabled=conflicto||finM<=iniM;
 }
+
+// Limpiar al cerrar modal
+document.getElementById('modalNueva').addEventListener('hidden.bs.modal', () => limpiarCliente());
 </script>
 {% endif %}
 {% endblock %}

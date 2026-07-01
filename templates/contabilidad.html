@@ -61,6 +61,7 @@
             <div class="panel-form">
                 <div class="panel-header"><i class="bi bi-plus-circle me-2"></i>Registrar Movimiento</div>
                 <form action="{{ url_for('contabilidad.index') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="btn-group w-100 mb-4" role="group">
                         <input type="radio" class="btn-check" name="tipo" id="tIngreso" value="ingreso" checked>
                         <label class="btn btn-outline-light" for="tIngreso">Ingreso</label>
@@ -112,7 +113,13 @@
                                     </td>
                                     <td class="text-end">
                                         {% if tiene_permiso('contabilidad.registrar') %}
-                                        <a href="{{ url_for('contabilidad.borrar', id=mov.id) }}" class="text-secondary" onclick="return confirm('¿Borrar?')"><i class="bi bi-x-lg"></i></a>
+                                        <form action="{{ url_for('contabilidad.borrar', id=mov.id) }}" method="POST"
+                                              class="d-inline" onsubmit="return confirm('¿Borrar?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-link text-secondary p-0 border-0">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -138,6 +145,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('contabilidad.cerrar_dia') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="d-flex justify-content-between mb-3">
                         <span class="fw-bold text-uppercase small text-secondary">Utilidad generada hoy:</span>

@@ -28,6 +28,7 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('auth.login') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div style="margin-bottom:15px;">
                 <label style="color:#333;font-weight:600;font-size:0.9rem;">Correo Electrónico</label>
                 <input type="email" name="email" required placeholder="correo@ejemplo.com" autocomplete="email">

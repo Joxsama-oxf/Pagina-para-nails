@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}{{ cliente.nombre }} - Laura Nails{% endblock %}
+{% block content %}
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;">
+    <img src="{{ url_for('static', filename='04_local.jpeg') }}" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.2);">
+</div>
+<style>
+    body{background:transparent;color:white;}
+    .font-title{font-family:'Playfair Display',serif;}
+    .card-dark{background:rgba(26,26,26,0.9);border:1px solid #333;border-radius:12px;padding:20px;}
+    .card-pink{background:rgba(26,26,26,0.9);border:2px solid #ec407a;border-radius:12px;padding:20px;}
+    .kpi-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:3px;}
+    .kpi-val{font-size:1.8rem;font-weight:700;}
+    .table-det{color:#ddd!important;background:transparent!important;width:100%;}
+    .table-det th{font-size:0.72rem;text-transform:uppercase;color:#888;border-bottom:1px solid #333;padding:10px 8px;}
+    .table-det td{padding:12px 8px;border-bottom:1px solid #2a2a2a;vertical-align:middle;}
+    .table-det tr:hover td{background:rgba(255,255,255,0.02);}
+    .form-dark{background:#2d2d2d!important;border:1px solid #444!important;color:#fff!important;border-radius:8px;}
+    .form-dark:focus{border-color:#ec407a!important;box-shadow:none!important;}
+    .btn-rosa{background:linear-gradient(45deg,#ec407a,#d81b60);color:white;border:none;font-weight:bold;}
+    .cedula-display{font-family:monospace;background:#1e1e1e;border:1px solid #444;padding:4px 12px;border-radius:8px;color:#90caf9;font-size:1rem;letter-spacing:2px;}
+</style>
+
+<div class="container py-4" style="position:relative;z-index:2;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 p-3 rounded-4 gap-2"
+         style="background:rgba(30,30,30,0.75);border:1px solid rgba(255,255,255,0.05);">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{{ url_for('clientes.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="font-title mb-0">{{ cliente.nombre }}</h4>
+                <small class="text-secondary">Cliente desde {{ cliente.fecha_registro.strftime('%d/%m/%Y') }}</small>
+            </div>
+        </div>
+        {% if tiene_permiso('usuarios.gestionar') %}
+        <button class="btn btn-rosa btn-sm px-3" data-bs-toggle="modal" data-bs-target="#modalEditar">
+            <i class="bi bi-pencil-fill me-1"></i>Editar
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Info -->
+        <div class="col-md-4">
+            <div class="card-pink h-100">
+                <h6 class="text-secondary text-uppercase small fw-bold mb-3">Información</h6>
+                <div class="mb-3">
+                    <div class="kpi-label">Cédula</div>
+                    {% if cliente.cedula %}
+                    <span class="cedula-display">{{ cliente.cedula }}</span>
+                    {% else %}
+                    <span class="text-secondary small">No registrada</span>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    <div class="kpi-label">Teléfono</div>
+                    <div class="fw-bold">
+                        {% if cliente.telefono %}
+                        <a href="tel:{{ cliente.telefono }}" class="text-white text-decoration-none">
+                            <i class="bi bi-telephone me-1 text-success"></i>{{ cliente.telefono }}
+                        </a>
+                        {% set wa_num = formatear_telefono_ec(cliente.telefono) %}
+                        {% if wa_num %}
+                        <a href="https://wa.me/{{ wa_num }}?text={{ ('Hola ' ~ cliente.nombre ~ ' 💅 Te escribimos de Laura Nails Beauty Studio.')|urlencode }}"
+                           target="_blank" rel="noopener" class="text-success ms-2"
+                           title="Escribir por WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        {% endif %}
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="kpi-label">Email</div>
+                    <div class="fw-bold small">{{ cliente.email or '—' }}</div>
+                </div>
+                {% if cliente.notas %}
+                <div>
+                    <div class="kpi-label">Notas</div>
+                    <div class="small text-secondary" style="font-style:italic;">{{ cliente.notas }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="col-md-8">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="card-dark text-center">
+                        <div class="kpi-label">Total visitas</div>
+                        <div class="kpi-val" style="color:#ffb6c1;">{{ cliente.total_visitas }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-dark text-center">
+                        <div class="kpi-label">Total gastado</div>
+                        <div class="kpi-val" style="color:#69f0ae;">${{ "%.2f"|format(cliente.total_gastado) }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-dark text-center">
+                        <div class="kpi-label">Última visita</div>
+                        <div class="fw-bold mt-1">{{ cliente.ultima_visita.strftime('%d/%m/%Y') if cliente.ultima_visita else '—' }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card-dark text-center">
+                        <div class="kpi-label">Servicio favorito</div>
+                        <div class="fw-bold mt-1 small" style="color:#ec407a;">{{ cliente.servicio_favorito or '—' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="card-dark">
+        <h6 class="text-secondary text-uppercase small fw-bold mb-3">
+            <i class="bi bi-calendar-check me-2"></i>Historial de Citas
+        </h6>
+        {% if citas %}
+        <div class="table-responsive">
+            <table class="table-det mb-0">
+                <thead>
+                    <tr><th>Fecha</th><th>Horario</th><th>Servicios</th><th>Manicurista</th><th>Estado</th><th class="text-end">Total</th></tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas %}
+                    <tr>
+                        <td class="fw-bold text-light">{{ cita.fecha.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-secondary small">{{ cita.hora_inicio.strftime('%H:%M') }} – {{ cita.hora_fin.strftime('%H:%M') }}</td>
+                        <td>{% for item in cita.servicios_cita %}<span class="badge bg-dark border border-secondary me-1" style="font-size:0.68rem;">{{ item.servicio_rel.nombre }}</span>{% endfor %}</td>
+                        <td class="text-secondary small">{{ cita.empleado.nombre }}</td>
+                        <td>
+                            <span class="badge {% if cita.estado=='pagada' %}bg-success{% elif cita.estado=='cancelada' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:0.65rem;">{{ cita.estado|upper }}</span>
+                        </td>
+                        <td class="text-end fw-bold" style="color:#69f0ae;">${{ "%.2f"|format(cita.total) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-secondary">
+            <i class="bi bi-calendar-x display-4 opacity-25 d-block mb-2"></i>Sin citas registradas.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if tiene_permiso('usuarios.gestionar') %}
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1e1e1e;border:1px solid #444;color:white;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold font-title">Editar Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('clientes.editar', id=cliente.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 fw-bold text-uppercase">Cédula ecuatoriana</label>
+                        <input type="text" name="cedula" class="form-control form-dark"
+                               value="{{ cliente.cedula or '' }}" maxlength="10"
+                               inputmode="numeric" placeholder="10 dígitos"
+                               oninput="this.value=this.value.replace(/\D/g,'')">
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 fw-bold text-uppercase">Nombre</label>
+                        <input type="text" name="nombre" class="form-control form-dark"
+                               value="{{ cliente.nombre }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 fw-bold text-uppercase">Teléfono</label>
+                        <input type="tel" name="telefono" class="form-control form-dark"
+                               value="{{ cliente.telefono or '' }}" placeholder="0999...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 fw-bold text-uppercase">Email</label>
+                        <input type="email" name="email" class="form-control form-dark"
+                               value="{{ cliente.email or '' }}" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-secondary small mb-1 fw-bold text-uppercase">Notas</label>
+                        <textarea name="notas" class="form-control form-dark" rows="3"
+                                  placeholder="Preferencias, alergias, observaciones...">{{ cliente.notas or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-rosa w-100 rounded-pill py-2">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

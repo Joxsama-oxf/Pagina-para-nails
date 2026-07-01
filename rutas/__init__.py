@@ -6,6 +6,7 @@ from ._04_Redes          import redes_bp
 from ._05_Auth           import auth_bp
 from ._06_AdminServicios import admin_servicios_bp
 from ._07_Usuarios       import usuarios_bp
+from ._08_Clientes       import clientes_bp
 
 def register_blueprints(app):
     app.register_blueprint(inicio_bp)
@@ -16,3 +17,4 @@ def register_blueprints(app):
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_servicios_bp)
     app.register_blueprint(usuarios_bp)
+    app.register_blueprint(clientes_bp)

@@ -1,17 +1,31 @@
-from flask import Blueprint, render_template
+import os
+from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required
 from rutas._helpers import requiere_permiso
 import requests
 
 redes_bp = Blueprint('redes', __name__)
-TOKEN = 'EAAMq9wrRXPIBQZBIe6K2zLoBZCAAOR6d60pCcazhIYl70idb9HLGhxS1Mz9HXOtsSBnSs5ulqov0eZCPD4RGMVZCOjJMz8tTIbuBIePeFzRbfRXs5PDq6U1QP9vIxhQIt621bUDuqkNswq6tpnecYM9JK436B3WgyHnsAbpk2btOg7lyDyoYz8MkuxMB2HZB7AHy6eEXpl8hwdCUyJqon0is2ZBfy6C1eVyQ7ZA'
+
+# El token de la Graph API se lee del .env (IG_TOKEN). Nunca va en el código.
+TOKEN = os.environ.get('IG_TOKEN', '')
+
+# Módulo de Redes deshabilitado temporalmente (sin cuenta de Instagram fija).
+# Para reactivar: pon REDES_ACTIVO = True y configura IG_TOKEN en el .env.
+REDES_ACTIVO = False
 
 
 @redes_bp.route('/redes')
 @login_required
 @requiere_permiso('redes.ver')
 def index():
+    if not REDES_ACTIVO:
+        return redirect(url_for('inicio.home'))
+
     datos_ig = {'conectado': False, 'error': None, 'perfil': {}, 'metricas': {}, 'publicaciones': []}
+
+    if not TOKEN:
+        datos_ig['error'] = "Instagram no está configurado (falta IG_TOKEN en el .env)."
+        return render_template('redes.html', ig=datos_ig)
 
     try:
         url_accounts = f"https://graph.facebook.com/v19.0/me/accounts?fields=instagram_business_account&access_token={TOKEN}"

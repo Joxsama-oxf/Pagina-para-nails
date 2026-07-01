@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+import os
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import User, Negocio, Rol, Permiso, Servicio, HistorialPrecio, CategoriaServicio, db
@@ -29,7 +30,29 @@ def logout():
 
 @auth_bp.route('/configurar-sistema')
 def configurar_sistema():
-    """Ejecutar UNA SOLA VEZ. Crea negocio, roles, permisos, usuarios y servicios demo."""
+    """Ejecutar UNA SOLA VEZ. Crea negocio, roles, permisos, usuarios y servicios demo.
+
+    BLINDAJE: esta ruta BORRA y recrea toda la base de datos, así que está protegida.
+      - Si la base aún no tiene usuarios (primer arranque), se permite sin token.
+      - Si ya hay usuarios, exige el SETUP_TOKEN del .env como ?token=...
+        Ej: /configurar-sistema?token=EL_TOKEN_DEL_ENV
+    """
+    hay_usuarios = User.query.count() > 0
+    if hay_usuarios:
+        setup_token = os.environ.get('SETUP_TOKEN', '')
+        token_recibido = request.args.get('token', '')
+        # Si no hay token configurado, o no coincide, se deniega.
+        if not setup_token or token_recibido != setup_token:
+            abort(403)
+
+    # Contraseñas de los usuarios demo: se leen del .env (nunca van en el código).
+    pass_admin = os.environ.get('SEED_PASS_ADMIN')
+    pass_mani1 = os.environ.get('SEED_PASS_MANI1')
+    pass_mani2 = os.environ.get('SEED_PASS_MANI2')
+    pass_mani3 = os.environ.get('SEED_PASS_MANI3')
+    if not all([pass_admin, pass_mani1, pass_mani2, pass_mani3]):
+        abort(500, "Faltan las contraseñas demo en el .env (SEED_PASS_*).")
+
     try:
         db.session.query(User).delete()
         db.session.query(HistorialPrecio).delete()
@@ -91,11 +114,11 @@ def configurar_sistema():
 
     # 4. Usuarios
     for u in [
-        {'nombre': 'Admin Principal',  'email': 'lauranadmin@gmail.com',  'pass': 'Anabella03#.,', 'rol': rol_admin},
-        {'nombre': 'Admin Secundario', 'email': 'lauranadmin2@gmail.com', 'pass': 'Anabella03#.,', 'rol': rol_admin},
-        {'nombre': 'Manicurista 1',    'email': 'lauranails01@gmail.com', 'pass': 'Beauty01',      'rol': rol_mani},
-        {'nombre': 'Manicurista 2',    'email': 'lauranails02@gmail.com', 'pass': 'Studio71',      'rol': rol_mani},
-        {'nombre': 'Manicurista 3',    'email': 'lauranails03@gmail.com', 'pass': 'Nails2026',     'rol': rol_mani},
+        {'nombre': 'Admin Principal',  'email': 'lauranadmin@gmail.com',  'pass': pass_admin, 'rol': rol_admin},
+        {'nombre': 'Admin Secundario', 'email': 'lauranadmin2@gmail.com', 'pass': pass_admin, 'rol': rol_admin},
+        {'nombre': 'Manicurista 1',    'email': 'lauranails01@gmail.com', 'pass': pass_mani1, 'rol': rol_mani},
+        {'nombre': 'Manicurista 2',    'email': 'lauranails02@gmail.com', 'pass': pass_mani2, 'rol': rol_mani},
+        {'nombre': 'Manicurista 3',    'email': 'lauranails03@gmail.com', 'pass': pass_mani3, 'rol': rol_mani},
     ]:
         nuevo = User(negocio_id=negocio.id, nombre=u['nombre'], email=u['email'],
                      password=generate_password_hash(u['pass'], method='scrypt'),

@@ -76,7 +76,7 @@ def cerrar_dia():
     return redirect(url_for('contabilidad.index'))
 
 
-@contabilidad_bp.route('/contabilidad/borrar/<int:id>')
+@contabilidad_bp.route('/contabilidad/borrar/<int:id>', methods=['POST'])
 @login_required
 @requiere_permiso('contabilidad.registrar')
 def borrar(id):

@@ -64,6 +64,7 @@
                     <td class="text-end text-nowrap">
                         {% if s.promo_activa %}
                         <form action="{{ url_for('admin_servicios.index') }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="accion" value="quitar_promocion">
                             <input type="hidden" name="id" value="{{ s.id }}">
                             <button type="submit" class="btn btn-sm btn-outline-secondary me-1" title="Quitar promo"><i class="bi bi-tag-fill text-muted"></i></button>
@@ -77,6 +78,7 @@
                                 onclick="prepEditar({{ s.id }}, '{{ s.nombre|e }}', {{ s.precio_actual }}, {{ s.duracion_min }}, {{ s.categoria_id or 'null' }})"
                                 data-bs-toggle="modal" data-bs-target="#modalServ"><i class="bi bi-pencil-fill"></i></button>
                         <form action="{{ url_for('admin_servicios.index') }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="accion" value="eliminar">
                             <input type="hidden" name="id" value="{{ s.id }}">
                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash-fill"></i></button>
@@ -102,6 +104,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('admin_servicios.index') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <input type="hidden" name="accion" id="fAccion" value="agregar">
                     <input type="hidden" name="id"     id="fId"     value="">
@@ -134,6 +137,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('admin_servicios.index') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <input type="hidden" name="accion" value="promocion">
                     <input type="hidden" name="id" id="promoId" value="">
@@ -160,6 +164,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('admin_servicios.index') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <input type="hidden" name="accion" value="agregar_categoria">
                     <div class="mb-3"><label class="text-secondary small mb-1">Nombre</label>

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Clientes - Laura Nails{% endblock %}
+{% block content %}
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;">
+    <img src="{{ url_for('static', filename='03_local.jpeg') }}" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.2);">
+</div>
+<style>
+    body{background:transparent;color:white;}
+    .font-title{font-family:'Playfair Display',serif;}
+    .contenedor{background:#1a1a1a;border-radius:12px;border:2px solid #ec407a;padding:25px;box-shadow:0 10px 30px rgba(0,0,0,0.6);margin-top:20px;}
+    .table-c{color:#ddd!important;background:transparent!important;width:100%;}
+    .table-c th{border-bottom:2px solid #ec407a!important;color:white!important;background:#212121!important;font-weight:600;text-transform:uppercase;font-size:0.78rem;letter-spacing:1px;padding:14px 12px!important;}
+    .table-c td{border-bottom:1px solid #333!important;vertical-align:middle;padding:12px!important;background:transparent!important;}
+    .table-c tbody tr:hover{background:rgba(236,64,122,0.05)!important;}
+    .form-dark{background:#2d2d2d!important;border:1px solid #444!important;color:#fff!important;border-radius:8px;}
+    .form-dark:focus{border-color:#ec407a!important;color:#fff!important;box-shadow:0 0 0 0.2rem rgba(236,64,122,0.2)!important;}
+    .form-dark::placeholder{color:#666!important;}
+    .btn-rosa{background:linear-gradient(45deg,#ec407a,#d81b60);color:white;border:none;font-weight:bold;}
+    .btn-rosa:hover{opacity:0.9;color:white;}
+    .stat-pill{background:rgba(236,64,122,0.1);border:1px solid rgba(236,64,122,0.3);color:#ffb6c1;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;}
+    .cedula-badge{font-family:monospace;background:#1e1e1e;border:1px solid #444;padding:2px 8px;border-radius:6px;font-size:0.8rem;color:#90caf9;}
+    .modal-dark .modal-content{background:#1e1e1e;border:1px solid #444;color:white;}
+    .modal-dark .modal-header,.modal-dark .modal-footer{border-color:#333;}
+    .label-field{color:#888;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;}
+</style>
+
+<div class="container py-4" style="position:relative;z-index:2;">
+
+    <!-- Cabecera -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 p-3 rounded-4 gap-2"
+         style="background:rgba(30,30,30,0.75);border:1px solid rgba(255,255,255,0.05);">
+        <h2 class="font-title mb-0">
+            <i class="bi bi-person-lines-fill me-2" style="color:#ec407a;"></i>Clientes
+            <span class="badge bg-dark border border-secondary ms-2"
+                  style="font-size:0.6rem;vertical-align:middle;">{{ clientes|length }}</span>
+        </h2>
+        <div class="d-flex gap-2 flex-wrap">
+            <form method="GET" action="{{ url_for('clientes.index') }}" class="d-flex gap-2">
+                <input type="text" name="q" value="{{ q }}" class="form-control form-dark"
+                       placeholder="Nombre, cédula o teléfono..." style="width:230px;">
+                <button type="submit" class="btn btn-outline-secondary px-3">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if q %}
+                <a href="{{ url_for('clientes.index') }}" class="btn btn-outline-secondary px-3">✕</a>
+                {% endif %}
+            </form>
+            <button class="btn btn-rosa px-4" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente">
+                <i class="bi bi-person-plus-fill me-1"></i>Nuevo Cliente
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="contenedor overflow-auto" style="max-height:72vh;">
+        <table class="table-c mb-0">
+            <thead>
+                <tr>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th class="text-center">Visitas</th>
+                    <th>Última visita</th>
+                    <th class="text-end">Total gastado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in clientes %}
+                <tr>
+                    <td>
+                        {% if c.cedula %}
+                        <span class="cedula-badge">{{ c.cedula }}</span>
+                        {% else %}
+                        <span class="text-secondary small">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-bold text-light">{{ c.nombre }}</td>
+                    <td class="text-secondary small">{{ c.telefono or '—' }}</td>
+                    <td class="text-secondary small" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        {{ c.email or '—' }}
+                    </td>
+                    <td class="text-center"><span class="stat-pill">{{ c.total_visitas }}</span></td>
+                    <td class="text-secondary small">
+                        {{ c.ultima_visita.strftime('%d/%m/%Y') if c.ultima_visita else '—' }}
+                    </td>
+                    <td class="text-end fw-bold" style="color:#69f0ae;">
+                        ${{ "%.2f"|format(c.total_gastado) }}
+                    </td>
+                    <td class="text-center text-nowrap">
+                        <a href="{{ url_for('clientes.detalle', id=c.id) }}"
+                           class="btn btn-sm btn-outline-light me-1" title="Ver detalle">
+                            <i class="bi bi-eye-fill"></i>
+                        </a>
+                        {% if tiene_permiso('usuarios.gestionar') %}
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                title="Eliminar"
+                                onclick="confirmarEliminar({{ c.id }}, '{{ c.nombre|e }}', {{ c.total_visitas }})">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-secondary">
+                        <i class="bi bi-people display-4 opacity-25 d-block mb-3"></i>
+                        {% if q %}
+                        No se encontraron clientes con "{{ q }}".
+                        {% else %}
+                        Sin clientes. Regístralos aquí o se crean automáticamente al agendar citas.
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── MODAL NUEVO CLIENTE ──────────────────────────────────────────────── -->
+<div class="modal fade modal-dark" id="modalNuevoCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold font-title">
+                    <i class="bi bi-person-plus-fill me-2" style="color:#ec407a;"></i>Registrar Cliente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('clientes.nuevo') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+
+                    <!-- Cédula con validación -->
+                    <div class="mb-3">
+                        <label class="label-field">Cédula ecuatoriana (opcional)</label>
+                        <div class="position-relative">
+                            <input type="text" name="cedula" id="newCedula"
+                                   class="form-control form-dark" placeholder="10 dígitos"
+                                   maxlength="10" inputmode="numeric"
+                                   oninput="this.value=this.value.replace(/\D/g,''); validarNuevaCedula(this.value)">
+                            <span id="newCedulaIcon" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1rem;"></span>
+                        </div>
+                        <div id="newCedulaMsg" class="small mt-1" style="display:none;"></div>
+                    </div>
+
+                    <!-- Nombre (requerido) -->
+                    <div class="mb-3">
+                        <label class="label-field">Nombre completo *</label>
+                        <input type="text" name="nombre" class="form-control form-dark"
+                               placeholder="Nombre del cliente" required>
+                    </div>
+
+                    <!-- Teléfono y Email en fila -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="label-field">Teléfono</label>
+                            <input type="tel" name="telefono" class="form-control form-dark"
+                                   placeholder="0999...">
+                        </div>
+                        <div class="col-6">
+                            <label class="label-field">Email</label>
+                            <input type="email" name="email" class="form-control form-dark"
+                                   placeholder="correo@ejemplo.com">
+                        </div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="mb-1">
+                        <label class="label-field">Notas (alergias, preferencias...)</label>
+                        <textarea name="notas" class="form-control form-dark" rows="2"
+                                  placeholder="Opcional..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-rosa px-5" id="btnNuevoCliente">
+                        <i class="bi bi-person-check-fill me-1"></i>Registrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL CONFIRMAR ELIMINAR ─────────────────────────────────────────── -->
+<form id="formEliminar" method="POST" action="" style="display:none;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
+<div class="modal fade" id="modalConfirmar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#1e1e1e;border:1px solid #c62828;color:white;">
+            <div class="modal-header" style="border-bottom:1px solid #333;">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Eliminar Cliente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-light mb-1">¿Eliminar a <strong id="nombreCliente" style="color:#ec407a;"></strong>?</p>
+                <p id="mensajeCitas" class="text-secondary small mb-0"></p>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #333;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger fw-bold px-4" id="btnConfirmarEliminar">
+                    <i class="bi bi-trash3-fill me-1"></i>Sí, eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validación cédula ecuatoriana
+function validarCedulaEC(c) {
+    if (!/^\d{10}$/.test(c)) return false;
+    const prov = parseInt(c.substring(0, 2));
+    if (prov < 1 || (prov > 24 && prov !== 30)) return false;
+    const d = c.split('').map(Number);
+    let suma = 0;
+    for (let i = 0; i < 9; i++) {
+        let v = d[i]; if (i % 2 === 0) { v *= 2; if (v > 9) v -= 9; } suma += v;
+    }
+    return (10 - (suma % 10)) % 10 === d[9];
+}
+
+function validarNuevaCedula(val) {
+    const icon = document.getElementById('newCedulaIcon');
+    const msg  = document.getElementById('newCedulaMsg');
+    const btn  = document.getElementById('btnNuevoCliente');
+    if (val.length === 0) {
+        icon.textContent = ''; msg.style.display = 'none'; btn.disabled = false; return;
+    }
+    if (val.length < 10) {
+        icon.textContent = ''; msg.style.display = 'none'; btn.disabled = false; return;
+    }
+    if (validarCedulaEC(val)) {
+        icon.textContent = '✓'; icon.style.color = '#69f0ae';
+        msg.textContent = 'Cédula válida'; msg.style.color = '#69f0ae'; msg.style.display = 'block';
+        btn.disabled = false;
+    } else {
+        icon.textContent = '✕'; icon.style.color = '#ff8a80';
+        msg.textContent = 'Cédula inválida — verifica los dígitos'; msg.style.color = '#ff8a80'; msg.style.display = 'block';
+        btn.disabled = true;
+    }
+}
+
+// Limpiar modal al cerrar
+document.getElementById('modalNuevoCliente').addEventListener('hidden.bs.modal', function(){
+    this.querySelector('form').reset();
+    document.getElementById('newCedulaIcon').textContent = '';
+    document.getElementById('newCedulaMsg').style.display = 'none';
+    document.getElementById('btnNuevoCliente').disabled = false;
+});
+
+// Confirmar eliminación
+function confirmarEliminar(id, nombre, visitas) {
+    document.getElementById('nombreCliente').textContent = nombre;
+    document.getElementById('mensajeCitas').textContent = visitas > 0
+        ? `Tiene ${visitas} cita(s). Las citas se conservarán pero quedarán desvinculadas.`
+        : 'No tiene citas. Se eliminará definitivamente.';
+    document.getElementById('btnConfirmarEliminar').onclick = function () {
+        const f = document.getElementById('formEliminar');
+        f.action = '/clientes/' + id + '/eliminar';
+        f.submit();
+    };
+    new bootstrap.Modal(document.getElementById('modalConfirmar')).show();
+}
+</script>
+{% endblock %}

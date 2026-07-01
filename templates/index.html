@@ -1,57 +1,166 @@
 {% extends "base.html" %}
 {% block title %}Inicio - Laura Nails{% endblock %}
 {% block content %}
+{% if current_user.is_authenticated %}
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;">
+    <img src="{{ url_for('static', filename='02_local.jpeg') }}" style="width:100%;height:100%;object-fit:cover;">
+    <div style="position:absolute;inset:0;background:linear-gradient(rgba(10,10,12,0.92),rgba(10,10,12,0.96));"></div>
+</div>
 <style>
-    .fondo-carrusel { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; }
-    .carousel-item  { height:100vh; background-color:#000; }
-    .carousel-item img { width:100%; height:100%; object-fit:cover; }
-    .overlay { position:absolute; top:0; left:0; width:100%; height:100%;
-               background:rgba(0,0,0,0.5); z-index:1; pointer-events:none; }
-    .contenido-frente { position:relative; z-index:10; height:100%;
-                        display:flex; flex-direction:column; justify-content:center;
-                        align-items:center; text-align:center; color:white; padding:0 15px; }
-    .titulo-hero { font-family:'Playfair Display',serif;
-                   font-size:clamp(3rem,10vw,5rem)!important;
-                   font-weight:700; margin:0; text-shadow:0 4px 15px rgba(0,0,0,0.5);
-                   letter-spacing:2px; animation:subir 1s ease-out; }
-    .subtitulo-hero { font-family:'Poppins',sans-serif; font-size:clamp(0.9rem,3vw,1.2rem)!important;
-                      font-weight:300; text-transform:uppercase; letter-spacing:5px;
-                      margin-top:10px; color:#ffb6c1; animation:subir 1.2s ease-out; }
-    .linea-separadora { width:100px; height:3px; background:#d63384; margin:20px auto;
-                        border-radius:2px; box-shadow:0 0 10px rgba(214,51,132,0.8);
-                        animation:expandir 1.5s ease-out; }
-    .fecha-flotante { position:absolute; top:20px; right:20px; color:rgba(255,255,255,0.7);
-                      font-size:0.9rem; letter-spacing:1px; z-index:20; }
-    @keyframes subir    { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes expandir { from{width:0;opacity:0} to{width:100px;opacity:1} }
+    body{background:transparent;color:#e0e0e0;}
+    .dash-wrap{max-width:1100px;margin:0 auto;}
+    .eyebrow{font-size:0.78rem;text-transform:uppercase;letter-spacing:3px;color:#ec407a;font-weight:600;}
+    .saludo{font-family:'Playfair Display',serif;font-weight:700;line-height:1.05;
+            font-size:clamp(2rem,6vw,3.4rem)!important;margin:4px 0 2px;color:#fff;}
+    .saludo-sub{color:#9a9a9a;font-size:0.95rem;}
+    /* KPI cards */
+    .kpi{background:rgba(28,28,32,0.7);backdrop-filter:blur(8px);border:1px solid #2c2c30;
+         border-radius:16px;padding:20px 22px;height:100%;position:relative;overflow:hidden;transition:transform .2s,border-color .2s;}
+    .kpi:hover{transform:translateY(-3px);border-color:#ec407a;}
+    .kpi .ico{position:absolute;right:14px;top:14px;font-size:1.6rem;opacity:0.18;}
+    .kpi .lbl{font-size:0.72rem;text-transform:uppercase;letter-spacing:1.5px;color:#8a8a8a;font-weight:600;margin-bottom:6px;}
+    .kpi .val{font-size:2.3rem;font-weight:700;line-height:1;color:#fff;}
+    .kpi .sub{font-size:0.78rem;color:#9a9a9a;margin-top:6px;}
+    .kpi.top-rosa{border-top:3px solid #ec407a;} .kpi.top-amber{border-top:3px solid #f59e0b;}
+    .kpi.top-green{border-top:3px solid #22c55e;} .kpi.top-blue{border-top:3px solid #38bdf8;}
+    /* Paneles */
+    .panel{background:rgba(24,24,28,0.82);backdrop-filter:blur(8px);border:1px solid #2c2c30;border-radius:16px;padding:22px;height:100%;}
+    .panel-h{font-size:0.8rem;text-transform:uppercase;letter-spacing:1.5px;color:#ec407a;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+    /* Próxima cita item */
+    .cita-row{display:flex;align-items:center;gap:14px;padding:12px 10px;border-bottom:1px solid #262629;}
+    .cita-row:last-child{border-bottom:none;}
+    .cita-hora{font-weight:700;color:#ffb6c1;font-size:0.95rem;min-width:52px;text-align:center;}
+    .cita-info{flex:1;min-width:0;}
+    .cita-nom{font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cita-serv{font-size:0.78rem;color:#9a9a9a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .wa-btn{color:#22c55e;font-size:1.25rem;line-height:1;}
+    /* Accesos rápidos */
+    .acceso{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;
+            background:rgba(40,40,46,0.6);border:1px solid #2c2c30;color:#ddd;text-decoration:none;
+            font-weight:500;transition:all .18s;margin-bottom:10px;}
+    .acceso:hover{background:rgba(236,64,122,0.14);border-color:#ec407a;color:#fff;transform:translateX(3px);}
+    .acceso i{font-size:1.2rem;color:#ec407a;width:24px;text-align:center;}
+    .empty{text-align:center;color:#777;padding:28px 10px;}
 </style>
 
-{% if current_user.is_authenticated %}
-<div class="fecha-flotante" id="fecha-actual"></div>
-<div id="carruselFondo" class="carousel slide carousel-fade fondo-carrusel"
-     data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="false" data-bs-wrap="true">
-    <div class="carousel-inner">
-        <div class="carousel-item active"><img src="{{ url_for('static', filename='01_local.jpeg') }}" alt=""></div>
-        <div class="carousel-item"><img src="{{ url_for('static', filename='02_local.jpeg') }}" alt=""></div>
-        <div class="carousel-item"><img src="{{ url_for('static', filename='03_local.jpeg') }}" alt=""></div>
-        <div class="carousel-item"><img src="{{ url_for('static', filename='04_local.jpeg') }}" alt=""></div>
-        <div class="carousel-item"><img src="{{ url_for('static', filename='05_local.jpeg') }}" alt=""></div>
+<div class="container py-4 py-md-5" style="position:relative;z-index:2;">
+  <div class="dash-wrap">
+
+    <!-- Encabezado -->
+    <div class="mb-4">
+        <div class="eyebrow">{{ fecha_label }}</div>
+        <h1 class="saludo">{{ saludo }}, {{ current_user.nombre.split(' ')[0] }}</h1>
+        <div class="saludo-sub">Esto es lo que pasa hoy en Laura Nails Beauty Studio.</div>
     </div>
-    <div class="overlay"></div>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="kpi top-rosa">
+                <i class="bi bi-calendar-event ico" style="color:#ec407a;"></i>
+                <div class="lbl">Citas de hoy</div>
+                <div class="val">{{ total_citas }}</div>
+                <div class="sub">{{ citas_pagadas }} atendidas</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi top-amber">
+                <i class="bi bi-hourglass-split ico" style="color:#f59e0b;"></i>
+                <div class="lbl">Pendientes</div>
+                <div class="val">{{ citas_pendientes }}</div>
+                <div class="sub">por atender hoy</div>
+            </div>
+        </div>
+        {% if ve_dinero %}
+        <div class="col-6 col-lg-3">
+            <div class="kpi top-green">
+                <i class="bi bi-cash-coin ico" style="color:#22c55e;"></i>
+                <div class="lbl">Ingresos de hoy</div>
+                <div class="val">${{ "%.2f"|format(ingresos_hoy) }}</div>
+                <div class="sub">Utilidad ${{ "%.2f"|format(utilidad_hoy) }}</div>
+            </div>
+        </div>
+        {% endif %}
+        {% if ve_todo %}
+        <div class="col-6 col-lg-3">
+            <div class="kpi top-blue">
+                <i class="bi bi-people-fill ico" style="color:#38bdf8;"></i>
+                <div class="lbl">Clientes</div>
+                <div class="val">{{ total_clientes }}</div>
+                <div class="sub">registrados en total</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row g-3">
+        <!-- Próximas citas -->
+        <div class="col-lg-7">
+            <div class="panel">
+                <div class="panel-h"><i class="bi bi-clock"></i>Próximas citas de hoy</div>
+                {% if proximas %}
+                    {% for c in proximas %}
+                    <div class="cita-row">
+                        <div class="cita-hora">{{ c.hora_inicio.strftime('%H:%M') }}</div>
+                        <div class="cita-info">
+                            <div class="cita-nom">
+                                {% if c.cliente_id %}
+                                <a href="{{ url_for('clientes.detalle', id=c.cliente_id) }}" class="text-white text-decoration-none">{{ c.nombre_cliente }}</a>
+                                {% else %}{{ c.nombre_cliente }}{% endif %}
+                            </div>
+                            <div class="cita-serv">
+                                {% for item in c.servicios_cita %}{{ item.servicio_rel.nombre }}{% if not loop.last %}, {% endif %}{% else %}Sin servicios{% endfor %}
+                                {% if ve_todo %} · {{ c.empleado.nombre }}{% endif %}
+                            </div>
+                        </div>
+                        {% set wa = formatear_telefono_ec(c.telefono_cliente) %}
+                        {% if wa %}
+                        {% set msg = 'Hola ' ~ c.nombre_cliente ~ ' 💅 Te recordamos tu cita en Laura Nails Beauty Studio hoy a las ' ~ c.hora_inicio.strftime('%H:%M') ~ '. ¡Te esperamos!' %}
+                        <a href="https://wa.me/{{ wa }}?text={{ msg|urlencode }}" target="_blank" rel="noopener"
+                           class="wa-btn" title="Recordar por WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="text-end mt-3">
+                        <a href="{{ url_for('agendamiento.index') }}" class="text-decoration-none small" style="color:#ec407a;">
+                            Ver agenda completa <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        <i class="bi bi-cup-hot d-block mb-2" style="font-size:2.2rem;opacity:0.3;"></i>
+                        No quedan citas pendientes para hoy.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Accesos rápidos -->
+        <div class="col-lg-5">
+            <div class="panel">
+                <div class="panel-h"><i class="bi bi-grid"></i>Accesos rápidos</div>
+                {% if tiene_permiso('citas.ver') %}
+                <a href="{{ url_for('agendamiento.index') }}" class="acceso"><i class="bi bi-calendar-plus"></i>Agendar una cita</a>
+                <a href="{{ url_for('clientes.index') }}" class="acceso"><i class="bi bi-person-lines-fill"></i>Clientes</a>
+                {% endif %}
+                {% if tiene_permiso('facturacion.ver') %}
+                <a href="{{ url_for('facturacion.index') }}" class="acceso"><i class="bi bi-cash-coin"></i>Cobrar / Facturar</a>
+                {% endif %}
+                {% if tiene_permiso('contabilidad.ver') %}
+                <a href="{{ url_for('contabilidad.index') }}" class="acceso"><i class="bi bi-graph-up-arrow"></i>Finanzas del día</a>
+                {% endif %}
+                {% if tiene_permiso('servicios.editar') %}
+                <a href="{{ url_for('admin_servicios.index') }}" class="acceso"><i class="bi bi-tags-fill"></i>Precios y servicios</a>
+                {% endif %}
+                {% if tiene_permiso('usuarios.gestionar') %}
+                <a href="{{ url_for('usuarios.index') }}" class="acceso"><i class="bi bi-people-fill"></i>Usuarios</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+  </div>
 </div>
-<div class="contenido-frente">
-    <h1 class="titulo-hero">Bienvenida</h1>
-    <div class="linea-separadora"></div>
-    <div class="subtitulo-hero">Sistema de Gestión</div>
-</div>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const h = new Date();
-        document.getElementById('fecha-actual').innerText =
-            String(h.getDate()).padStart(2,'0') + '.' +
-            String(h.getMonth()+1).padStart(2,'0') + '.' + h.getFullYear();
-    });
-</script>
 {% else %}
 <script>window.location.href="{{ url_for('auth.login') }}";</script>
 {% endif %}

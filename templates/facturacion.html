@@ -107,6 +107,7 @@
                         <div class="total-display" id="total-display">$0.00</div>
                     </div>
                     <form method="POST" action="{{ url_for('facturacion.index') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="total_hidden"       id="total_hidden"   value="0">
                         <input type="hidden" name="descripcion_hidden" id="desc_hidden"    value="">
                         <input type="hidden" name="cita_id"            id="cita_id_hidden" value="">
